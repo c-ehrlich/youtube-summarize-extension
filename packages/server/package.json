@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
-    "@trpc/server": "^10.x",
+    "@trpc/server": "^10.45.2",
     "@yt-summarize/trpc": "workspace:*",
     "hono": "^4.6.17"
   },

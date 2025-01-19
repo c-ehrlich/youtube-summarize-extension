@@ -10,4 +10,10 @@ export default defineManifest(() => ({
   action: {
     default_popup: "src/popup.html",
   },
+  content_scripts: [
+    {
+      js: ["src/content/index.tsx"],
+      matches: ["https://www.youtube.com/*"],
+    },
+  ],
 }));

@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server"; // or a different adapter
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "@yt-summarize/trpc";
-import type { AppRouter } from "@yt-summarize/trpc";
 
 const app = new Hono();
 

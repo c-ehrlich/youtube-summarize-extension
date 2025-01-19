@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,9 +22,13 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^1.0.14",
+    "@types/chrome": "^0.0.297",
+    "@types/node": "^22.10.7",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^4.x"
+    "npm-build-zip": "^1.0.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
   }
 }

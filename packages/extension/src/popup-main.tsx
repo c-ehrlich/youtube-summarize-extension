@@ -17,19 +17,16 @@ function App() {
   const queryClient = useState(() => new QueryClient());
   const trpcClient = useState(() => createClient());
 
+  return <p> we are in react</p>;
+
   return (
-    <trpc.Provider
-      client={trpcClient}
-      queryClient={queryClient}
-      children={
-        <QueryClientProvider client={queryClient}>
-          <p>we are in react</p>
-        </QueryClientProvider>
-      }
-    />
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <p>we are in react</p>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
 
 const rootEl = document.getElementById("root")!;
-// createRoot(rootEl).render(<p>we are in react</p>);
 createRoot(rootEl).render(<App />);

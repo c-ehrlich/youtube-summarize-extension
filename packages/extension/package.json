@@ -1,0 +1,27 @@
+{
+  "name": "@yt-summarize/extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tanstack/react-query": "^4.x",
+    "@trpc/client": "^10.x",
+    "@trpc/react-query": "^10.x",
+    "@trpc/server": "^10.45.2",
+    "@yt-summarize/trpc": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^1.0.14",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^4.x"
+  }
+}

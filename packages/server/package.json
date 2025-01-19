@@ -1,0 +1,18 @@
+{
+  "name": "@yt-summarize/server",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@trpc/server": "^10.x",
+    "@yt-summarize/trpc": "workspace:*",
+    "hono": "^4.6.17"
+  },
+  "devDependencies": {
+    "tsx": "^3.x",
+    "typescript": "^4.x"
+  }
+}

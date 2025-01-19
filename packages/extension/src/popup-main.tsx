@@ -14,8 +14,8 @@ function Popup() {
 }
 
 function App() {
-  const queryClient = useState(() => new QueryClient());
-  const trpcClient = useState(() => createClient());
+  // const queryClient = useState(() => new QueryClient());
+  // const trpcClient = useState(() => createClient());
 
   return <p> we are in react</p>;
 

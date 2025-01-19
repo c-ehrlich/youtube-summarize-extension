@@ -19,13 +19,13 @@ function App() {
 
   return <p> we are in react</p>;
 
-  return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <p>we are in react</p>
-      </QueryClientProvider>
-    </trpc.Provider>
-  );
+  // return (
+  //   <trpc.Provider client={trpcClient} queryClient={queryClient}>
+  //     <QueryClientProvider client={queryClient}>
+  //       <p>we are in react</p>
+  //     </QueryClientProvider>
+  //   </trpc.Provider>
+  // );
 }
 
 const rootEl = document.getElementById("root")!;

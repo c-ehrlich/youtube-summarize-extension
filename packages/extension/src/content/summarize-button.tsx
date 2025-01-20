@@ -3,6 +3,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../ui/primitives/popover";
+import { cn } from "../ui/util/cn";
 
 export function SummarizeButton({
   thumbnailElement,
@@ -36,13 +37,14 @@ export function SummarizeButton({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="summarize-btn bg-red-500 text-white border-none py-1 px-2 text-sm cursor-pointer rounded"
+          className={cn(
+            "summarize-btn",
+            "absolute z-50 bg-red-500 text-white border-none py-1 px-3 text-md cursor-pointer rounded-md"
+          )}
           onClick={handleClick}
           style={{
-            position: "absolute",
             bottom: "8px",
             left: "8px",
-            zIndex: 9999,
           }}
         >
           Summarize

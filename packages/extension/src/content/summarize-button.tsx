@@ -39,7 +39,7 @@ export function SummarizeButton({
         <button
           className={cn(
             "summarize-btn",
-            "absolute z-50 bg-red-500 text-white border-none py-1 px-3 text-md cursor-pointer rounded-md"
+            "absolute z-50 bg-red-500 text-white border-none py-1 px-3 text-lg cursor-pointer rounded-md"
           )}
           onClick={handleClick}
           style={{

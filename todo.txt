@@ -1,3 +1,4 @@
+https://crxjs.dev/vite-plugin/getting-started/react/dev-basics
 - move @trpc/server to workspace
 - get a good chrome extension setup working
 - serverside cache the responses so we dont need to run ai everytime

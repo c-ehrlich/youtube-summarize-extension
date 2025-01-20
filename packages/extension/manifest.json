@@ -2,5 +2,17 @@
     "manifest_version": 3,
     "name": "CRXJS React Vite Exampleee",
     "version": "1.0.0",
-    "action": { "default_popup": "index.html" }
+    "action": { "default_popup": "index.html" },
+    "content_scripts": [
+      {
+        "matches": ["https://www.youtube.com/*"],
+        "js": ["src/content.tsx"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["icons/*.png", "src/assets/*.svg"],
+        "matches": []
+      }
+    ]
   }

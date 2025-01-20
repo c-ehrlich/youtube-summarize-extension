@@ -1,3 +1,9 @@
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../ui/primitives/popover";
+
 export function SummarizeButton({
   thumbnailElement,
 }: {
@@ -27,25 +33,29 @@ export function SummarizeButton({
   };
 
   return (
-    <button
-      className="summarize-btn"
-      onClick={handleClick}
-      style={{
-        position: "absolute",
-        bottom: "8px",
-        left: "8px",
-        zIndex: 9999,
-        backgroundColor: "#ff0000",
-        color: "#fff",
-        border: "none",
-        padding: "4px 8px",
-        cursor: "pointer",
-        fontSize: "12px",
-        borderRadius: "4px",
-      }}
-    >
-      Summarize
-    </button>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          className="summarize-btn bg-red-500 text-white border-none py-1 px-2 text-sm cursor-pointer rounded"
+          onClick={handleClick}
+          style={{
+            position: "absolute",
+            bottom: "8px",
+            left: "8px",
+            zIndex: 9999,
+          }}
+        >
+          Summarize
+        </button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <Content />
+      </PopoverContent>
+    </Popover>
   );
-  4;
 }
+
+const Content = () => {
+  console.log("tktk foo");
+  return <div className="p-4 bg-green-500">foo</div>;
+};

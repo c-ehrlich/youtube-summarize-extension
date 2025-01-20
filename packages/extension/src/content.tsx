@@ -43,16 +43,15 @@ const SummarizeButton = ({
 }: {
   thumbnailElement: HTMLElement;
 }) => {
-  const getVideoId = () => {
+  const videoId = (() => {
     const anchor = thumbnailElement.querySelector("a#thumbnail");
     if (!anchor) return null;
     const urlParams = new URLSearchParams(anchor.search);
     return urlParams.get("v");
-  };
+  })();
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const videoId = getVideoId();
     if (videoId) {
       chrome.runtime.sendMessage({ type: "SUMMARIZE_VIDEO", videoId });
     } else {

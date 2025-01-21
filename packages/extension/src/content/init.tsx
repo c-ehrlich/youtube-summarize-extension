@@ -1,34 +1,84 @@
 import ReactDOM from "react-dom/client";
-import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 import { SummarizeButton } from "./summarize-button";
 
-export const Init = () => {
-  useEffect(() => {
-    const addButtonsToThumbnails = () => {
-      const thumbnails = document.querySelectorAll(
-        "ytd-thumbnail"
-      ) as NodeListOf<HTMLElement>;
+const ButtonContainer = () => {
+  const [thumbnails, setThumbnails] = useState<HTMLElement[]>([]);
 
-      thumbnails.forEach((thumb) => {
-        if (!thumb.querySelector(".summarize-btn")) {
+  useEffect(() => {
+    const updateThumbnails = () => {
+      const currentThumbnails = Array.from(
+        document.querySelectorAll("ytd-thumbnail")
+      ) as HTMLElement[];
+
+      setThumbnails((prev) => {
+        // Only add thumbnails that we haven't seen before
+        const newThumbnails = currentThumbnails.filter(
+          (thumb) =>
+            !prev.includes(thumb) && !thumb.querySelector(".summarize-btn")
+        );
+
+        // Set position relative on new thumbnails
+        newThumbnails.forEach((thumb) => {
           thumb.style.position = "relative";
-          const buttonContainer = document.createElement("div");
-          ReactDOM.createRoot(buttonContainer).render(
-            <SummarizeButton thumbnailElement={thumb} />
-          );
-          thumb.appendChild(buttonContainer);
-        }
+        });
+
+        return [...prev, ...newThumbnails];
       });
     };
 
     // Initial run and interval setup
-    addButtonsToThumbnails();
+    updateThumbnails();
+    const interval = setInterval(updateThumbnails, 1000);
 
-    const interval = setInterval(addButtonsToThumbnails, 1000);
-
-    // Cleanup
     return () => {
       clearInterval(interval);
+    };
+  }, []);
+
+  return (
+    <>
+      {thumbnails.map((thumb, index) => (
+        <SummarizeButtonPortal key={index} thumbnailElement={thumb} />
+      ))}
+    </>
+  );
+};
+
+// This component handles creating a portal for each button
+const SummarizeButtonPortal = ({
+  thumbnailElement,
+}: {
+  thumbnailElement: HTMLElement;
+}) => {
+  const [container] = useState(() => document.createElement("div"));
+
+  useEffect(() => {
+    thumbnailElement.appendChild(container);
+    return () => {
+      thumbnailElement.removeChild(container);
+    };
+  }, [thumbnailElement, container]);
+
+  return createPortal(
+    <SummarizeButton thumbnailElement={thumbnailElement} />,
+    container
+  );
+};
+
+export const Init = () => {
+  useEffect(() => {
+    // Create a single root container for our app
+    const rootContainer = document.createElement("div");
+    document.body.appendChild(rootContainer);
+
+    const root = ReactDOM.createRoot(rootContainer);
+    root.render(<ButtonContainer />);
+
+    return () => {
+      root.unmount();
+      document.body.removeChild(rootContainer);
     };
   }, []);
 

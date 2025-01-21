@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   Popover,
   PopoverContent,
@@ -59,5 +60,12 @@ export function SummarizeButton({
 
 const Content = () => {
   console.log("tktk foo");
-  return <div className="p-4 bg-green-500">foo</div>;
+  const q = useQuery({
+    queryKey: ["foo"],
+    queryFn: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return "bar";
+    },
+  });
+  return <div className="p-4 bg-green-500">{q.data ?? "loading"}</div>;
 };

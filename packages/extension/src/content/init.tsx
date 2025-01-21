@@ -2,6 +2,9 @@ import ReactDOM from "react-dom/client";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { SummarizeButton } from "./summarize-button";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const ButtonContainer = () => {
   const [thumbnails, setThumbnails] = useState<HTMLElement[]>([]);
@@ -74,7 +77,11 @@ export const Init = () => {
     document.body.appendChild(rootContainer);
 
     const root = ReactDOM.createRoot(rootContainer);
-    root.render(<ButtonContainer />);
+    root.render(
+      <QueryClientProvider client={queryClient}>
+        <ButtonContainer />
+      </QueryClientProvider>
+    );
 
     return () => {
       root.unmount();

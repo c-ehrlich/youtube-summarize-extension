@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { YoutubeTranscript } from "youtube-transcript";
 import {
   Popover,
@@ -9,6 +9,7 @@ import { cn } from "../ui/util/cn";
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import ReactMarkdown from "react-markdown";
+import { PopoverClose } from "@radix-ui/react-popover";
 
 export function SummarizeButton({
   thumbnailElement,
@@ -64,9 +65,11 @@ export function SummarizeButton({
 
 const Content = ({ videoId }: { videoId: string | null }) => {
   console.log("tktk content", videoId);
+  const qc = useQueryClient();
   const q = useQuery({
     enabled: !!videoId,
-    queryKey: ["foo", videoId],
+    staleTime: Infinity,
+    queryKey: ["video-summary", videoId],
     queryFn: async () => {
       if (!videoId) {
         throw new Error("No video ID found");
@@ -98,13 +101,26 @@ const Content = ({ videoId }: { videoId: string | null }) => {
     },
   });
   return (
-    <div className="w-full">
-      {q.data ? (
-        <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
-          <ReactMarkdown>{q.data}</ReactMarkdown>
+    <div className="w-full flex flex-col gap-2">
+      <div className="w-full flex justify-end">
+        <PopoverClose>X</PopoverClose>
+      </div>
+      {q.data && !q.isFetching ? (
+        <div className="w-full flex flex-col gap-2">
+          <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
+            <ReactMarkdown>{q.data}</ReactMarkdown>
+          </div>
+          <button
+            onClick={() =>
+              qc.invalidateQueries({ queryKey: ["video-summary", videoId] })
+            }
+            className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          >
+            Regenerate summary
+          </button>
         </div>
       ) : (
-        <p>loading</p>
+        <p>loading...</p>
       )}
     </div>
   );

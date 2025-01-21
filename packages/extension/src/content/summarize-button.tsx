@@ -51,21 +51,31 @@ export function SummarizeButton({
           Summarize
         </button>
       </PopoverTrigger>
-      <PopoverContent>
-        <Content />
+      <PopoverContent className="transition-all p-4 bg-green-500 z-[9999]">
+        <Content videoId={videoId} />
       </PopoverContent>
     </Popover>
   );
 }
 
-const Content = () => {
-  console.log("tktk foo");
+const Content = ({ videoId }: { videoId: string | null }) => {
+  console.log("tktk foo", videoId);
   const q = useQuery({
-    queryKey: ["foo"],
+    queryKey: ["foo", videoId],
     queryFn: async () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return "bar";
     },
   });
-  return <div className="p-4 bg-green-500">{q.data ?? "loading"}</div>;
+  return (
+    <div>
+      {q.data ? (
+        <div>
+          {q.data} {videoId}
+        </div>
+      ) : (
+        <p>loading</p>
+      )}
+    </div>
+  );
 };

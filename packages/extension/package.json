@@ -10,12 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.1.0",
     "@radix-ui/react-popover": "^1.1.4",
     "@tanstack/react-query": "^5.64.2",
     "@yt-summarize/trpc": "workspace:*",
+    "ai": "^4.1.0",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.30",

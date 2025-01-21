@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
+import { YoutubeTranscript } from "youtube-transcript";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "../ui/primitives/popover";
 import { cn } from "../ui/util/cn";
+import { generateText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+
+const OPENAI_API_KEY = "abc123";
 
 export function SummarizeButton({
   thumbnailElement,
@@ -51,7 +56,7 @@ export function SummarizeButton({
           Summarize
         </button>
       </PopoverTrigger>
-      <PopoverContent className="transition-all p-4 bg-green-500 z-[9999]">
+      <PopoverContent className="transition-all p-4 bg-gray-200 text-gray-900 z-[9999]">
         <Content videoId={videoId} />
       </PopoverContent>
     </Popover>
@@ -59,12 +64,30 @@ export function SummarizeButton({
 }
 
 const Content = ({ videoId }: { videoId: string | null }) => {
-  console.log("tktk foo", videoId);
+  console.log("tktk content", videoId);
   const q = useQuery({
+    enabled: !!videoId,
     queryKey: ["foo", videoId],
     queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return "bar";
+      if (!videoId) {
+        throw new Error("No video ID found");
+      }
+
+      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      const transcriptText = transcript.map((t) => t.text).join("\n");
+
+      const openai = createOpenAI({
+        apiKey: OPENAI_API_KEY,
+      });
+
+      const summary = await generateText({
+        model: openai("gpt-4o-mini-2024-07-18"),
+        prompt: generatePrompt(transcriptText),
+      });
+
+      console.log("tktk summary", summary);
+
+      return summary.text;
     },
   });
   return (
@@ -79,3 +102,14 @@ const Content = ({ videoId }: { videoId: string | null }) => {
     </div>
   );
 };
+
+function generatePrompt(transcriptText: string): string {
+  return `You are a helpful assistant that summarizes YouTube videos.
+Keep it short and concise. For example if the video is a list of 5 tips, give each tip in bold and a 1 sentence summary.
+Return the summary in a markdown format (but no need to use a code block).
+
+The transcript is as follows:
+
+${transcriptText}
+`;
+}

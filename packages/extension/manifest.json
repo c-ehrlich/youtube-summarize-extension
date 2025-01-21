@@ -2,6 +2,11 @@
     "manifest_version": 3,
     "name": "CRXJS React Vite Exampleee",
     "version": "1.0.0",
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "storage"
+    ],
     "action": { "default_popup": "index.html" },
     "content_scripts": [
       {

@@ -9,8 +9,6 @@ import { cn } from "../ui/util/cn";
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 
-const OPENAI_API_KEY = "abc123";
-
 export function SummarizeButton({
   thumbnailElement,
 }: {
@@ -71,6 +69,14 @@ const Content = ({ videoId }: { videoId: string | null }) => {
     queryFn: async () => {
       if (!videoId) {
         throw new Error("No video ID found");
+      }
+
+      const { openaiApiKey } = await chrome.storage.local.get(["openaiApiKey"]);
+      const OPENAI_API_KEY = openaiApiKey;
+      console.log("tktk OPENAI_API_KEY", OPENAI_API_KEY);
+
+      if (!OPENAI_API_KEY) {
+        return "No OpenAI API key found. Please set an API key in the extension settings.";
       }
 
       const transcript = await YoutubeTranscript.fetchTranscript(videoId);

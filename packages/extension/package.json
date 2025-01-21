@@ -18,11 +18,13 @@
     "clsx": "^2.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.3",
     "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.30",
     "@eslint/js": "^9.17.0",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/chrome": "^0.0.299",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

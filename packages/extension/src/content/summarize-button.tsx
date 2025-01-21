@@ -8,6 +8,7 @@ import {
 import { cn } from "../ui/util/cn";
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import ReactMarkdown from "react-markdown";
 
 export function SummarizeButton({
   thumbnailElement,
@@ -54,7 +55,7 @@ export function SummarizeButton({
           Summarize
         </button>
       </PopoverTrigger>
-      <PopoverContent className="transition-all p-4 bg-gray-200 text-gray-900 z-[9999]">
+      <PopoverContent className="transition-all p-6 bg-gray-100 dark:bg-gray-900 shadow-lg text-gray-900 dark:text-gray-100 z-[9999] w-[500px]">
         <Content videoId={videoId} />
       </PopoverContent>
     </Popover>
@@ -97,10 +98,10 @@ const Content = ({ videoId }: { videoId: string | null }) => {
     },
   });
   return (
-    <div>
+    <div className="w-full">
       {q.data ? (
-        <div>
-          {q.data} {videoId}
+        <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
+          <ReactMarkdown>{q.data}</ReactMarkdown>
         </div>
       ) : (
         <p>loading</p>
@@ -111,8 +112,8 @@ const Content = ({ videoId }: { videoId: string | null }) => {
 
 function generatePrompt(transcriptText: string): string {
   return `You are a helpful assistant that summarizes YouTube videos.
-Keep it short and concise. For example if the video is a list of 5 tips, give each tip in bold and a 1 sentence summary.
-Return the summary in a markdown format (but no need to use a code block).
+Keep it short and concise - in most cases you should not need more than 5 bullet points.
+But you can make exceptions - for example if the video is a top10, tell me what the top10 things are and why.Return the summary in a markdown format (but no need to use a code block).
 
 The transcript is as follows:
 

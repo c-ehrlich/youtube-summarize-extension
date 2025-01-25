@@ -6,11 +6,9 @@ import {
   PopoverTrigger,
 } from "../ui/primitives/popover";
 import { cn } from "../ui/util/cn";
-import { generateText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
 import ReactMarkdown from "react-markdown";
 import { PopoverClose } from "@radix-ui/react-popover";
-// import { trpc } from "../lib/trpc";
+import { trpc } from "../lib/trpc";
 
 export function SummarizeButton({
   videoId,
@@ -62,31 +60,33 @@ const Content = ({
   channel: string;
   description: string;
 }) => {
-  // const c = trpc.hello.useQuery({ name: "from trpc" });
-  // console.log("tktk content", videoId, c.data);
   const qc = useQueryClient();
-  const q = useQuery({
+  const videoInfoQuery = useQuery({
     enabled: !!videoId,
     staleTime: Infinity,
-    queryKey: ["video-summary", videoId, title],
+    queryKey: ["video-info", videoId, title],
     queryFn: async () => {
       if (!videoId) {
         throw new Error("No video ID found");
       }
 
-      const { openaiApiKey } = await chrome.storage.local.get(["openaiApiKey"]);
-      const OPENAI_API_KEY = openaiApiKey;
-      console.log("tktk OPENAI_API_KEY", OPENAI_API_KEY);
+      // const { openaiApiKey } = await chrome.storage.local.get(["openaiApiKey"]);
+      // const OPENAI_API_KEY = openaiApiKey;
+      // console.log("tktk OPENAI_API_KEY", OPENAI_API_KEY);
 
-      if (!OPENAI_API_KEY) {
-        return "No OpenAI API key found. Please set an API key in the extension settings.";
-      }
+      // if (!OPENAI_API_KEY) {
+      //   return "No OpenAI API key found. Please set an API key in the extension settings.";
+      // }
 
       // Fetch transcript and description in parallel
       const [transcript, descriptionResponse] = await Promise.all([
         YoutubeTranscript.fetchTranscript(videoId),
         fetch(`https://www.youtube.com/watch?v=${videoId}`),
       ]);
+
+      if (!transcript) {
+        throw new Error("No transcript found");
+      }
 
       const transcriptText = transcript.map((t) => t.text).join("\n");
 
@@ -104,33 +104,37 @@ const Content = ({
           )
         : description || "No description available";
 
-      const openai = createOpenAI({
-        apiKey: OPENAI_API_KEY,
-      });
-
-      const summary = await generateText({
-        model: openai("gpt-4o-mini-2024-07-18"),
-        prompt: generatePrompt({
-          transcriptText,
-          title,
-          channel,
-          description: fullDescription,
-        }),
-      });
-
-      console.log("tktk summary", summary);
-
-      return summary.text;
+      return {
+        transcript: transcriptText,
+        title,
+        videoId,
+        description: fullDescription,
+        author: channel,
+      };
     },
   });
+
+  const summaryQuery = trpc.summary.getSummary.useQuery(
+    // ok to asser because `enabled` checks that it exists
+    videoInfoQuery.data!,
+    {
+      enabled: !!videoInfoQuery.data,
+    }
+  );
+
+  // TODO: NEXT - separate loading/error state for transcript and summary
 
   return (
     <div className="w-full flex flex-col gap-2">
       <div className="w-full flex justify-end">
         <PopoverClose>X</PopoverClose>
       </div>
-      {/* {c.data ? <p>{c.data}</p> : <pre>{JSON.stringify(c, null, 2)}</pre>} */}
-      {q.data && !q.isFetching ? (
+      {summaryQuery.data ? (
+        <p>{summaryQuery.data.summary}</p>
+      ) : (
+        <pre>{JSON.stringify(summaryQuery, null, 2)}</pre>
+      )}
+      {/* {q.data && !q.isFetching ? (
         <div className="w-full flex flex-col gap-2">
           <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
             <ReactMarkdown>{q.data}</ReactMarkdown>
@@ -146,47 +150,7 @@ const Content = ({
         </div>
       ) : (
         <p>loading...</p>
-      )}
+      )} */}
     </div>
   );
 };
-
-function generatePrompt({
-  transcriptText,
-  title,
-  channel,
-  description,
-}: {
-  transcriptText: string;
-  title: string;
-  channel: string;
-  description: string;
-}): string {
-  console.log("tktk generating prompt", {
-    title,
-    channel,
-    description,
-    transcriptText,
-  });
-
-  return `You are a helpful assistant that summarizes YouTube videos.
-If the title is a question or some other kind of clickbait, start by answering it with 1 sentence.
-Keep it short and concise - in most cases you should not need more than 5 bullet points.
-But you can make exceptions - for example if the video is a top10, tell me what the top10 things are and why.Return the summary in a markdown format (but no need to use a code block).
-
-Please use the following information to help you give a good summary:
-
-Channel name:
-${channel}
-
-Video title: 
-${title}
-
-Video description:
-${description}
-
-The transcript is as follows:
-
-${transcriptText}
-`;
-}

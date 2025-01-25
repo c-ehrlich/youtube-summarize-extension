@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { t } from "../init";
+import { baseProcedure, t } from "../init";
 
-export const hello = t.procedure
+export const hello = baseProcedure
   .input(z.object({ name: z.string() }))
   .query(({ input }) => {
     return `Hello ${input.name}`;

@@ -2,9 +2,11 @@ name = "yt-summarize-server"
 main = "src/index.ts"
 compatibility_date = "2025-01-25"
 
-[env.dev.vars]
-# overriden by .dev.vars
+[vars]
 OPENAI_API_KEY = "sk-123"
+AXIOM_TOKEN = "xaat-abc123"
+AXIOM_DATASET_NAME = "yt-summarize"
+ENVIRONMENT = "prod"
 
 # compatibility_flags = [ "nodejs_compat" ]
 

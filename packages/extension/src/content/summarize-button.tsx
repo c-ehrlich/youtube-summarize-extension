@@ -15,10 +15,12 @@ export function SummarizeButton({
   videoId,
   title,
   channel,
+  description,
 }: {
   videoId: string;
   title: string;
   channel: string;
+  description: string;
 }) {
   // TODO: `useEffect` somehow makes things go bad here
   // const handleClick = (e: React.MouseEvent) => {
@@ -48,7 +50,12 @@ export function SummarizeButton({
         </button>
       </PopoverTrigger>
       <PopoverContent className="transition-all p-6 bg-gray-100 dark:bg-gray-900 shadow-lg text-gray-900 dark:text-gray-100 z-[9999] w-[500px]">
-        <Content videoId={videoId} title={title} channel={channel} />
+        <Content
+          videoId={videoId}
+          title={title}
+          channel={channel}
+          description={description}
+        />
       </PopoverContent>
     </Popover>
   );
@@ -58,10 +65,12 @@ const Content = ({
   videoId,
   title,
   channel,
+  description,
 }: {
   videoId: string;
   title: string;
   channel: string;
+  description: string;
 }) => {
   console.log("tktk content", videoId);
   const qc = useQueryClient();
@@ -82,8 +91,27 @@ const Content = ({
         return "No OpenAI API key found. Please set an API key in the extension settings.";
       }
 
-      const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+      // Fetch transcript and description in parallel
+      const [transcript, descriptionResponse] = await Promise.all([
+        YoutubeTranscript.fetchTranscript(videoId),
+        fetch(`https://www.youtube.com/watch?v=${videoId}`),
+      ]);
+
       const transcriptText = transcript.map((t) => t.text).join("\n");
+
+      // Extract description from the response HTML
+      const html = await descriptionResponse.text();
+      const descriptionMatch =
+        html.match(/"description":{"simpleText":"(.*?)"}/) ||
+        html.match(/"shortDescription":"(.*?)"/);
+      const fullDescription = descriptionMatch
+        ? decodeURIComponent(
+            descriptionMatch[1]
+              .replace(/\\u/g, "%u")
+              .replace(/\\n/g, "\n")
+              .replace(/\\"/g, '"')
+          )
+        : description || "No description available";
 
       const openai = createOpenAI({
         apiKey: OPENAI_API_KEY,
@@ -91,7 +119,12 @@ const Content = ({
 
       const summary = await generateText({
         model: openai("gpt-4o-mini-2024-07-18"),
-        prompt: generatePrompt({ transcriptText, title, channel }),
+        prompt: generatePrompt({
+          transcriptText,
+          title,
+          channel,
+          description: fullDescription,
+        }),
       });
 
       console.log("tktk summary", summary);
@@ -129,17 +162,35 @@ function generatePrompt({
   transcriptText,
   title,
   channel,
+  description,
 }: {
   transcriptText: string;
   title: string;
   channel: string;
+  description: string;
 }): string {
-  console.log("tktk generating prompt", { title, channel, transcriptText });
+  console.log("tktk generating prompt", {
+    title,
+    channel,
+    description,
+    transcriptText,
+  });
 
   return `You are a helpful assistant that summarizes YouTube videos.
 If the title is a question or some other kind of clickbait, start by answering it with 1 sentence.
 Keep it short and concise - in most cases you should not need more than 5 bullet points.
 But you can make exceptions - for example if the video is a top10, tell me what the top10 things are and why.Return the summary in a markdown format (but no need to use a code block).
+
+Please use the following information to help you give a good summary:
+
+Channel name:
+${channel}
+
+Video title: 
+${title}
+
+Video description:
+${description}
 
 The transcript is as follows:
 

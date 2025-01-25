@@ -2,11 +2,11 @@ https://crxjs.dev/vite-plugin/getting-started/react/dev-basics
 
 === required to get friends using it ===
 
-- [ ] better prompt that includes
-  - [ ] the title
-  - [ ] account name
-  - [ ] video description if possible?
-  - [ ] account description if possible?
+- [x] better prompt that includes
+  - [x] the title
+  - [x] account name
+  - [x] video description if possible?
+  - [x] account description if possible?
 - [x] setup hono server
 - [ ] get frontend talking to hono/trpc in localhost
 - [ ] deploy hono to cf

@@ -26,18 +26,20 @@ export function SummarizeButton({
       return null;
     }
 
+    console.log("tktk thumbnailElement", thumbnailElement);
+
     const urlParams = new URLSearchParams(anchor.search);
     return urlParams.get("v");
   })();
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoId) {
-      chrome.runtime.sendMessage({ type: "SUMMARIZE_VIDEO", videoId });
-    } else {
-      alert("No video ID found.");
-    }
-  };
+  // const handleClick = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   if (videoId) {
+  //     chrome.runtime.sendMessage({ type: "SUMMARIZE_VIDEO", videoId });
+  //   } else {
+  //     alert("No video ID found.");
+  //   }
+  // };
 
   return (
     <Popover>
@@ -47,7 +49,7 @@ export function SummarizeButton({
             "summarize-btn",
             "absolute z-50 bg-red-500 text-white border-none py-1 px-3 text-lg cursor-pointer rounded-md"
           )}
-          onClick={handleClick}
+          // onClick={handleClick}
           style={{
             bottom: "8px",
             left: "8px",

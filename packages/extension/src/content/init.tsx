@@ -16,13 +16,11 @@ const ButtonContainer = () => {
       ) as HTMLElement[];
 
       setThumbnails((prev) => {
-        // Only add thumbnails that we haven't seen before
         const newThumbnails = currentThumbnails.filter(
           (thumb) =>
             !prev.includes(thumb) && !thumb.querySelector(".summarize-btn")
         );
 
-        // Set position relative on new thumbnails
         newThumbnails.forEach((thumb) => {
           thumb.style.position = "relative";
         });
@@ -31,7 +29,6 @@ const ButtonContainer = () => {
       });
     };
 
-    // Initial run and interval setup
     updateThumbnails();
     const interval = setInterval(updateThumbnails, 1000);
 
@@ -42,18 +39,50 @@ const ButtonContainer = () => {
 
   return (
     <>
-      {thumbnails.map((thumb, index) => (
-        <SummarizeButtonPortal key={index} thumbnailElement={thumb} />
-      ))}
+      {thumbnails.map((thumb, index) => {
+        // Find the parent rich-grid-media element
+        const gridMedia = thumb.closest("ytd-rich-grid-media");
+
+        // Extract video title
+        const titleElement = gridMedia?.querySelector("#video-title");
+        const title = titleElement?.textContent?.trim() || "";
+
+        // Extract channel name
+        const channelElement = gridMedia?.querySelector(
+          "#channel-name yt-formatted-string"
+        );
+        const channel = channelElement?.textContent?.trim() || "";
+
+        // Extract video ID from thumbnail link
+        const anchor = thumb.querySelector("a#thumbnail") as HTMLAnchorElement;
+        const urlParams = new URLSearchParams(anchor?.search || "");
+        const videoId = urlParams.get("v") || "";
+
+        return (
+          <SummarizeButtonPortal
+            key={index}
+            thumbnailElement={thumb}
+            videoId={videoId}
+            title={title}
+            channel={channel}
+          />
+        );
+      })}
     </>
   );
 };
 
-// This component handles creating a portal for each button
+// Update the portal component to pass the new props
 const SummarizeButtonPortal = ({
   thumbnailElement,
+  videoId,
+  title,
+  channel,
 }: {
   thumbnailElement: HTMLElement;
+  videoId: string;
+  title: string;
+  channel: string;
 }) => {
   const [container] = useState(() => document.createElement("div"));
 
@@ -65,7 +94,7 @@ const SummarizeButtonPortal = ({
   }, [thumbnailElement, container]);
 
   return createPortal(
-    <SummarizeButton thumbnailElement={thumbnailElement} />,
+    <SummarizeButton videoId={videoId} title={title} channel={channel} />,
     container
   );
 };

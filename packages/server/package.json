@@ -1,5 +1,5 @@
 {
-  "name": "server2",
+  "name": "@yt-summarize/server",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
@@ -7,11 +7,12 @@
   },
   "dependencies": {
     "@trpc/server": "^10.45.2",
-    "@yt-summarize/trpc": "workspace:*",
-    "hono": "^4.6.18"
+    "hono": "^4.6.18",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250124.3",
+    "typescript": "^5.7.3",
     "wrangler": "^3.105.1"
   }
 }

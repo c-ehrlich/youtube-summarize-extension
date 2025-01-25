@@ -9,12 +9,14 @@
   - [x] account description if possible?
 - [x] setup hono server
 - [x] get frontend talking to hono/trpc in localhost
-- [ ] deploy hono to cf
-- [ ] get frontend talking to hono/trpc in cf
+- [x] trpc doesnt need to be its own package...
+- [x] get env working via wrangler.toml locally
 - [ ] build summary fetching in server
   - [ ] transcript fetching should probably still happen on client to prevent rate limiting
   - [ ] figure out the best way to not make duplication feel bad
   - [ ] log token usage to axiom
+- [ ] deploy hono to cf
+- [ ] get frontend talking to hono/trpc in cf
 - [ ] add default / advanced mode (call server vs use own token/model choice) to extension
 - [ ] add d1 to store summaries
   - [ ] unique on video id + title, or just video id?
@@ -31,6 +33,8 @@
 - [ ] implement payments
   - [ ] setup stripe
   - [ ] give free unlimited accounts to a few people who have shown interest (sarah, nestor)
+- [ ] rate limiting
+  - [ ] https://www.npmjs.com/package/@hono-rate-limiter/cloudflare
 - [ ] use cache-control (how long?)
   - [ ] send info about header cache hits (at least for regular mode) to axiom
 - [ ] also consider caching to idb in frontend?

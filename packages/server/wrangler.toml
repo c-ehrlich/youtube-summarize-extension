@@ -1,6 +1,10 @@
-name = "server2"
+name = "yt-summarize-server"
 main = "src/index.ts"
 compatibility_date = "2025-01-25"
+
+[env.dev.vars]
+# overriden by .dev.vars
+OPENAI_API_KEY = "sk-123"
 
 # compatibility_flags = [ "nodejs_compat" ]
 
@@ -23,6 +27,6 @@ compatibility_date = "2025-01-25"
 # [ai]
 # binding = "AI"
 
-# [observability]
-# enabled = true
-# head_sampling_rate = 1
+[observability]
+enabled = true
+head_sampling_rate = 1

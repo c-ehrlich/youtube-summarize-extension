@@ -1,5 +1,54 @@
 https://crxjs.dev/vite-plugin/getting-started/react/dev-basics
-- move @trpc/server to workspace
-- get a good chrome extension setup working
-- serverside cache the responses so we dont need to run ai everytime
-- tell ai the title of the video
+
+=== required to get friends using it ===
+
+- [ ] better prompt that includes
+  - [ ] the title
+  - [ ] account name
+  - [ ] video description if possible?
+  - [ ] account description if possible?
+- [x] setup hono server
+- [ ] get frontend talking to hono/trpc in localhost
+- [ ] deploy hono to cf
+- [ ] get frontend talking to hono/trpc in cf
+- [ ] build summary fetching in server
+  - [ ] log token usage to axiom
+- [ ] add default / advanced mode (api vs own token/model choice) to extension
+- [ ] add d1 to store summaries
+  - [ ] unique on video id + title, or just video id?
+  - [ ] send info about cache hits to axiom
+- [ ] implement accounts (google oauth)
+  - [ ] advanced mode should work without logging in
+  - [ ] is r2 enough for storing auth data?
+  - [ ] auth.js or clerk?
+  - [ ] either implement stripe (see next section) or figure out how to give free unlimited accounts to a few people and gate normal mode for everyone else?
+- [ ] better loading/error state for frontend
+
+=== required to charge money for it ===
+
+- [ ] separate section in summary for answering the clickbait question, when the title has it? (1 sentence)
+- [ ] implement payments
+  - [ ] setup stripe
+  - [ ] give free unlimited accounts to a few people who have shown interest (sara, nestor)
+- [ ] use cache-control (how long?)
+  - [ ] send info about header cache hits (at least for regular mode) to axiom
+- [ ] also consider caching to idb in frontend?
+  - [ ] send info about idb cache hits (at least for regular mode) to axiom
+- [ ] figure out what it should cost (based on collected usage data)
+  - [ ] how many tokens per video? what % is cache hits? how much do ppl use it?
+  - [ ] talk to people and see if they would pay for it
+  - [ ] initial idea: 100 free summaries (not time based), then $1.99/month for unlimited (fair use)
+- [ ] use v0 to make a less shit ui
+- [ ] try to get real tailwind hmr working
+
+=== after initial release ===
+
+- [ ] good github actions setup (publish extension, deploy server to cf)
+- [ ] "This summary wasn't good" button => why => use that to generate new summary + improve prompt
+- [ ] Evals / A/B testing for prompt improvements?
+
+please also attempt to find the video title. here is its position in the dom:
+
+#thumbnail has a sibling #details, which has a child #meta, which has a child h3, which has a child a#video-title-link, which has a child #video-title.
+
+maybe we can just look for #video-title more broadly without relying on the exact dom structure outlined above?

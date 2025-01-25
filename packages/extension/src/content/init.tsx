@@ -54,11 +54,6 @@ const ButtonContainer = () => {
         );
         const channel = channelElement?.textContent?.trim() || "";
 
-        // Extract video description
-        const descriptionElement =
-          gridMedia?.querySelector("#description-text");
-        const description = descriptionElement?.textContent?.trim() || "";
-
         // Extract video ID from thumbnail link
         const anchor = thumb.querySelector("a#thumbnail") as HTMLAnchorElement;
         const urlParams = new URLSearchParams(anchor?.search || "");
@@ -71,7 +66,6 @@ const ButtonContainer = () => {
             videoId={videoId}
             title={title}
             channel={channel}
-            description={description}
           />
         );
       })}
@@ -85,13 +79,11 @@ const SummarizeButtonPortal = ({
   videoId,
   title,
   channel,
-  description,
 }: {
   thumbnailElement: HTMLElement;
   videoId: string;
   title: string;
   channel: string;
-  description: string;
 }) => {
   const [container] = useState(() => document.createElement("div"));
 
@@ -103,12 +95,7 @@ const SummarizeButtonPortal = ({
   }, [thumbnailElement, container]);
 
   return createPortal(
-    <SummarizeButton
-      videoId={videoId}
-      title={title}
-      channel={channel}
-      description={description}
-    />,
+    <SummarizeButton videoId={videoId} title={title} channel={channel} />,
     container
   );
 };

@@ -14,12 +14,10 @@ export function SummarizeButton({
   videoId,
   title,
   channel,
-  description,
 }: {
   videoId: string;
   title: string;
   channel: string;
-  description: string;
 }) {
   return (
     <Popover>
@@ -38,12 +36,7 @@ export function SummarizeButton({
         </button>
       </PopoverTrigger>
       <PopoverContent className="transition-all p-6 bg-gray-100 dark:bg-gray-900 shadow-lg text-gray-900 dark:text-gray-100 z-[9999] w-[500px]">
-        <Content
-          videoId={videoId}
-          title={title}
-          channel={channel}
-          description={description}
-        />
+        <Content videoId={videoId} title={title} channel={channel} />
       </PopoverContent>
     </Popover>
   );
@@ -53,14 +46,14 @@ const Content = ({
   videoId,
   title,
   channel,
-  description,
 }: {
   videoId: string;
   title: string;
   channel: string;
-  description: string;
 }) => {
+  console.log("tktk SummarizeButton", { videoId, title, channel });
   const qc = useQueryClient();
+  const utils = trpc.useUtils();
   const videoInfoQuery = useQuery({
     enabled: !!videoId,
     staleTime: Infinity,
@@ -69,14 +62,6 @@ const Content = ({
       if (!videoId) {
         throw new Error("No video ID found");
       }
-
-      // const { openaiApiKey } = await chrome.storage.local.get(["openaiApiKey"]);
-      // const OPENAI_API_KEY = openaiApiKey;
-      // console.log("tktk OPENAI_API_KEY", OPENAI_API_KEY);
-
-      // if (!OPENAI_API_KEY) {
-      //   return "No OpenAI API key found. Please set an API key in the extension settings.";
-      // }
 
       // Fetch transcript and description in parallel
       const [transcript, descriptionResponse] = await Promise.all([
@@ -95,20 +80,26 @@ const Content = ({
       const descriptionMatch =
         html.match(/"description":{"simpleText":"(.*?)"}/) ||
         html.match(/"shortDescription":"(.*?)"/);
-      const fullDescription = descriptionMatch
-        ? decodeURIComponent(
-            descriptionMatch[1]
+      let description: string | undefined;
+
+      try {
+        description = descriptionMatch
+          ? descriptionMatch[1]
               .replace(/\\u/g, "%u")
               .replace(/\\n/g, "\n")
               .replace(/\\"/g, '"')
-          )
-        : description || "No description available";
+          : undefined;
+      } catch (e) {
+        console.error("Error decoding description", { descriptionMatch, e });
+
+        throw new Error("Error decoding description");
+      }
 
       return {
         transcript: transcriptText,
         title,
         videoId,
-        description: fullDescription,
+        description,
         author: channel,
       };
     },
@@ -122,6 +113,22 @@ const Content = ({
     }
   );
 
+  if (videoInfoQuery.isLoading) {
+    return <p>Loading video info...</p>;
+  }
+
+  if (summaryQuery.isLoading) {
+    return <p>Loading summary...</p>;
+  }
+
+  if (videoInfoQuery.isError) {
+    return <p>Error loading video info</p>;
+  }
+
+  if (summaryQuery.isError) {
+    return <p>Error loading summary</p>;
+  }
+
   // TODO: NEXT - separate loading/error state for transcript and summary
 
   return (
@@ -129,28 +136,23 @@ const Content = ({
       <div className="w-full flex justify-end">
         <PopoverClose>X</PopoverClose>
       </div>
-      {summaryQuery.data ? (
-        <p>{summaryQuery.data.summary}</p>
-      ) : (
-        <pre>{JSON.stringify(summaryQuery, null, 2)}</pre>
-      )}
-      {/* {q.data && !q.isFetching ? (
-        <div className="w-full flex flex-col gap-2">
-          <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
-            <ReactMarkdown>{q.data}</ReactMarkdown>
-          </div>
-          <button
-            onClick={() =>
-              qc.invalidateQueries({ queryKey: ["video-summary", videoId] })
-            }
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
-          >
-            Regenerate summary
-          </button>
+      <div className="w-full flex flex-col gap-2">
+        <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
+          <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>
         </div>
-      ) : (
-        <p>loading...</p>
-      )} */}
+        <button
+          onClick={() => {
+            qc.invalidateQueries({ queryKey: ["video-info", videoId, title] });
+            utils.summary.getSummary.invalidate({
+              videoId,
+              title,
+            });
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Regenerate summary
+        </button>
+      </div>
     </div>
   );
 };

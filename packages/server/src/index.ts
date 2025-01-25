@@ -1,13 +1,11 @@
-import { Hono } from "hono";
-import { serve } from "@hono/node-server"; // or a different adapter
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { Hono } from "hono";
 import { appRouter } from "@yt-summarize/trpc";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: CloudflareBindings }>();
 
-// Basic route for testing
 app.get("/", (c) => {
-  return c.text("Hono + tRPC API is running");
+  return c.text("Hello Hono!");
 });
 
 // tRPC via Hono: we can mount it under /trpc
@@ -22,7 +20,4 @@ app.all("/trpc/*", async (c) => {
   return response;
 });
 
-serve({
-  fetch: app.fetch,
-  port: 3000,
-});
+export default app;

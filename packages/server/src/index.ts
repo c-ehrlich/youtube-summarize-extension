@@ -1,8 +1,11 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { appRouter } from "@yt-summarize/trpc";
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
+
+app.use("*", cors());
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");

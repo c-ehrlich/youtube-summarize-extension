@@ -14,6 +14,9 @@
         "js": ["src/content.tsx"]
       }
     ],
+    "host_permissions": [
+      "http://localhost:8787/*"
+    ],
     "web_accessible_resources": [
       {
         "resources": ["icons/*.png", "src/assets/*.svg"],

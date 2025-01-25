@@ -10,6 +10,7 @@ import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import ReactMarkdown from "react-markdown";
 import { PopoverClose } from "@radix-ui/react-popover";
+// import { trpc } from "../lib/trpc";
 
 export function SummarizeButton({
   videoId,
@@ -22,25 +23,14 @@ export function SummarizeButton({
   channel: string;
   description: string;
 }) {
-  // TODO: `useEffect` somehow makes things go bad here
-  // const handleClick = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (videoId) {
-  //     chrome.runtime.sendMessage({ type: "SUMMARIZE_VIDEO", videoId });
-  //   } else {
-  //     alert("No video ID found.");
-  //   }
-  // };
-
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "summarize-btn",
+            "summarize-btn", // 🐉 needed for application logic (to check if there is already a button)
             "absolute z-50 bg-red-500 text-white border-none py-1 px-3 text-lg cursor-pointer rounded-md"
           )}
-          // onClick={handleClick}
           style={{
             bottom: "8px",
             left: "8px",
@@ -72,7 +62,8 @@ const Content = ({
   channel: string;
   description: string;
 }) => {
-  console.log("tktk content", videoId);
+  // const c = trpc.hello.useQuery({ name: "from trpc" });
+  // console.log("tktk content", videoId, c.data);
   const qc = useQueryClient();
   const q = useQuery({
     enabled: !!videoId,
@@ -132,11 +123,13 @@ const Content = ({
       return summary.text;
     },
   });
+
   return (
     <div className="w-full flex flex-col gap-2">
       <div className="w-full flex justify-end">
         <PopoverClose>X</PopoverClose>
       </div>
+      {/* {c.data ? <p>{c.data}</p> : <pre>{JSON.stringify(c, null, 2)}</pre>} */}
       {q.data && !q.isFetching ? (
         <div className="w-full flex flex-col gap-2">
           <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">

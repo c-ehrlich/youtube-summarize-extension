@@ -19,9 +19,5 @@
         "resources": ["icons/*.png", "src/assets/*.svg"],
         "matches": []
       }
-    ],
-    "background": {
-      "service_worker": "src/background.ts",
-      "type": "module"
-    }
+    ]
   }

@@ -1,5 +1,9 @@
 # todo
 
+## crazy ideas
+
+- [ ] what if instead of a popover it's a modal, and on the bottom there are two buttons: "View Video", "Not Interested" (which actually sends "not interested" to YouTube)
+
 ## required to get friends using it
 
 - [x] better prompt that includes

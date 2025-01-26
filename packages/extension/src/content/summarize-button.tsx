@@ -1,17 +1,17 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { YoutubeTranscript } from "youtube-transcript";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/primitives/popover";
 import { cn } from "../ui/util/cn";
 import ReactMarkdown from "react-markdown";
-import { PopoverClose } from "@radix-ui/react-popover";
 import { trpc } from "../lib/trpc";
-import { Card } from "../ui/primitives/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "../ui/primitives/dialog";
+import React from "react";
+import { LoadingSpinner } from "../ui/loading-spinner";
 import { Button } from "../ui/primitives/button";
-import { X } from "lucide-react";
 export function SummarizeButton({
   videoId,
   title,
@@ -22,8 +22,8 @@ export function SummarizeButton({
   channel: string;
 }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <Dialog>
+      <DialogTrigger asChild>
         <button
           className={cn(
             "summarize-btn", // 🐉 needed for application logic (to check if there is already a button)
@@ -36,25 +36,14 @@ export function SummarizeButton({
         >
           Summarize
         </button>
-      </PopoverTrigger>
-      <PopoverContent className="z-[9999]">
-        <Card className="mx-4 p-4 relative shadow-lg w-[500px] bg-gray-100 dark:bg-gray-900  text-gray-900 dark:text-gray-100">
-          <div className="w-full flex flex-col gap-2">
-            <div className="w-full h-full flex justify-end">
-              <PopoverClose>
-                <Button
-                  variant="ghost"
-                  className="hover:bg-gray-200 dark:hover:bg-gray-800"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </PopoverClose>
-            </div>
-            <Content videoId={videoId} title={title} channel={channel} />
-          </div>
-        </Card>
-      </PopoverContent>
-    </Popover>
+      </DialogTrigger>
+      <DialogContent
+        overlayClassName="z-[9998]"
+        className="bg-gray-100 dark:bg-gray-900 z-[9999]"
+      >
+        <Content videoId={videoId} title={title} channel={channel} />
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -67,7 +56,6 @@ const Content = ({
   title: string;
   channel: string;
 }) => {
-  console.log("tktk SummarizeButton", { videoId, title, channel });
   const qc = useQueryClient();
   const utils = trpc.useUtils();
   const videoInfoQuery = useQuery({
@@ -130,11 +118,11 @@ const Content = ({
   );
 
   if (videoInfoQuery.isLoading) {
-    return <p>Loading video info...</p>;
+    return <Loading text="Loading video info..." />;
   }
 
   if (summaryQuery.isLoading) {
-    return <p>Loading summary...</p>;
+    return <Loading text="Loading summary..." />;
   }
 
   if (videoInfoQuery.isError) {
@@ -148,22 +136,37 @@ const Content = ({
   // TODO: NEXT - separate loading/error state for transcript and summary
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
-        <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>
+    <React.Fragment>
+      <div className="w-full flex flex-col gap-2">
+        <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
+          <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>
+        </div>
       </div>
-      <button
-        onClick={() => {
-          qc.invalidateQueries({ queryKey: ["video-info", videoId, title] });
-          utils.summary.getSummary.invalidate({
-            videoId,
-            title,
-          });
-        }}
-        className="bg-blue-500 text-white px-4 py-2 rounded-md"
-      >
-        Regenerate summary
-      </button>
-    </div>
+      <DialogFooter>
+        <Button variant="ghost">Watch</Button>
+        <Button variant="default">Not interested</Button>
+        {/* <button
+          onClick={() => {
+            qc.invalidateQueries({ queryKey: ["video-info", videoId, title] });
+            utils.summary.getSummary.invalidate({
+              videoId,
+              title,
+            });
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Regenerate summary
+        </button> */}
+      </DialogFooter>
+    </React.Fragment>
   );
 };
+
+function Loading({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col gap-2 items-center justify-center text-gray-900 dark:text-gray-100">
+      <LoadingSpinner size={32} />
+      <p>{text}</p>
+    </div>
+  );
+}

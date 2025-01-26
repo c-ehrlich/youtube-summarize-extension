@@ -142,21 +142,13 @@ const Content = ({
           <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>
         </div>
       </div>
-      <DialogFooter>
-        <Button variant="ghost">Watch</Button>
-        <Button variant="default">Not interested</Button>
-        {/* <button
-          onClick={() => {
-            qc.invalidateQueries({ queryKey: ["video-info", videoId, title] });
-            utils.summary.getSummary.invalidate({
-              videoId,
-              title,
-            });
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          Regenerate summary
-        </button> */}
+      <DialogFooter className="flex gap-2">
+        <Button variant="ghost" className="flex-1">
+          Watch
+        </Button>
+        <Button variant="default" className="flex-1">
+          Not interested
+        </Button>
       </DialogFooter>
     </React.Fragment>
   );

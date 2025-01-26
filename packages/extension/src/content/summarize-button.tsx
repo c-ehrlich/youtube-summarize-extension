@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+  DialogHeader,
   DialogTrigger,
 } from "../ui/primitives/dialog";
 import React from "react";
@@ -39,7 +40,7 @@ export function SummarizeButton({
       </DialogTrigger>
       <DialogContent
         overlayClassName="z-[9998]"
-        className="bg-gray-100 dark:bg-gray-900 z-[9999]"
+        className="bg-gray-100 dark:bg-gray-900 z-[9999] dark:text-white"
       >
         <Content videoId={videoId} title={title} channel={channel} />
       </DialogContent>
@@ -137,6 +138,7 @@ const Content = ({
 
   return (
     <React.Fragment>
+      <DialogHeader className="pr-4 text-3xl">Summary</DialogHeader>
       <div className="w-full flex flex-col gap-2">
         <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
           <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>

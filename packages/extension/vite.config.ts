@@ -19,4 +19,12 @@ export default defineConfig({
       interval: 100,
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        popup: "index.html",
+        config: "config.html",
+      },
+    },
+  },
 });

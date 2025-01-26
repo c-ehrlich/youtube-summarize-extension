@@ -8,6 +8,10 @@
       "storage"
     ],
     "action": { "default_popup": "index.html" },
+    "background": {
+      "service_worker": "src/background.ts",
+      "type": "module"
+    },
     "content_scripts": [
       {
         "matches": ["https://www.youtube.com/*"],
@@ -20,8 +24,8 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["icons/*.png", "src/assets/*.svg"],
-        "matches": []
+        "resources": ["icons/*.png", "src/assets/*.svg", "config.html"],
+        "matches": ["<all_urls>"]
       }
     ]
   }

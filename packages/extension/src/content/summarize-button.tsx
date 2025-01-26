@@ -9,7 +9,9 @@ import { cn } from "../ui/util/cn";
 import ReactMarkdown from "react-markdown";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { trpc } from "../lib/trpc";
-
+import { Card } from "../ui/primitives/card";
+import { Button } from "../ui/primitives/button";
+import { X } from "lucide-react";
 export function SummarizeButton({
   videoId,
   title,
@@ -35,8 +37,22 @@ export function SummarizeButton({
           Summarize
         </button>
       </PopoverTrigger>
-      <PopoverContent className="transition-all p-6 bg-gray-100 dark:bg-gray-900 shadow-lg text-gray-900 dark:text-gray-100 z-[9999] w-[500px]">
-        <Content videoId={videoId} title={title} channel={channel} />
+      <PopoverContent className="z-[9999]">
+        <Card className="mx-4 p-4 relative shadow-lg w-[500px] bg-gray-100 dark:bg-gray-900  text-gray-900 dark:text-gray-100">
+          <div className="w-full flex flex-col gap-2">
+            <div className="w-full h-full flex justify-end">
+              <PopoverClose>
+                <Button
+                  variant="ghost"
+                  className="hover:bg-gray-200 dark:hover:bg-gray-800"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </PopoverClose>
+            </div>
+            <Content videoId={videoId} title={title} channel={channel} />
+          </div>
+        </Card>
       </PopoverContent>
     </Popover>
   );
@@ -133,26 +149,21 @@ const Content = ({
 
   return (
     <div className="w-full flex flex-col gap-2">
-      <div className="w-full flex justify-end">
-        <PopoverClose>X</PopoverClose>
+      <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
+        <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>
       </div>
-      <div className="w-full flex flex-col gap-2">
-        <div className="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
-          <ReactMarkdown>{summaryQuery.data.summary}</ReactMarkdown>
-        </div>
-        <button
-          onClick={() => {
-            qc.invalidateQueries({ queryKey: ["video-info", videoId, title] });
-            utils.summary.getSummary.invalidate({
-              videoId,
-              title,
-            });
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          Regenerate summary
-        </button>
-      </div>
+      <button
+        onClick={() => {
+          qc.invalidateQueries({ queryKey: ["video-info", videoId, title] });
+          utils.summary.getSummary.invalidate({
+            videoId,
+            title,
+          });
+        }}
+        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+      >
+        Regenerate summary
+      </button>
     </div>
   );
 };

@@ -11,6 +11,7 @@
 - [x] get frontend talking to hono/trpc in localhost
 - [x] trpc doesnt need to be its own package...
 - [x] get env working via wrangler.toml locally
+- [ ] make it work for embeds on other sites as well
 - [ ] build summary fetching in server
   - [ ] transcript fetching should probably still happen on client to prevent rate limiting
   - [ ] figure out the best way to not make duplication feel bad

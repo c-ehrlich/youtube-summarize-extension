@@ -50,6 +50,18 @@ ${transcript}
 `;
 }
 
+const TEST_MODE = true;
+
+const TEST_SUMMARY = `What the hell happened to COD Warzone? The game has seen a significant decline in player engagement due to various gameplay and design issues.
+
+- **Complex Gameplay**: The introduction of an overly complicated movement system and inconsistent gameplay mechanics has alienated both new and returning players.
+- **Weapon and Gear Overload**: With over 160 weapons and excessive gear options, players feel overwhelmed and find it hard to balance the game.
+- **Loss of Battle Royale Essence**: Warzone has shifted from a traditional battle royale experience to a fast-paced team deathmatch format, diminishing the thrill of survival.
+- **Audio Issues**: Poor audio design hampers player awareness, making it difficult to hear footsteps and other critical sounds, leading to frustrating gameplay experiences.
+- **Cheating and Trust Issues**: The rampant cheating problem has eroded player trust, with many feeling that the developers prioritize monetization over fixing core gameplay issues.
+
+Overall, the video expresses a desire for Warzone to return to its roots and suggests that separating it from the annual Call of Duty releases could help restore its original appeal.`;
+
 export const getSummary = baseProcedure
   .input(
     z.object({
@@ -64,6 +76,10 @@ export const getSummary = baseProcedure
     console.log("tktk env from trpc procedure", opts.ctx.env);
 
     // TODO: check cache
+    if (TEST_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return { summary: TEST_SUMMARY };
+    }
 
     const summary = await generateText({
       model: opts.ctx.openai("gpt-4o-mini-2024-07-18"),

@@ -15,18 +15,19 @@
 - [x] get frontend talking to hono/trpc in localhost
 - [x] trpc doesnt need to be its own package...
 - [x] get env working via wrangler.toml locally
+- [x] build summary fetching in server
+  - [x] transcript fetching should probably still happen on client to prevent rate limiting
+  - [x] log token usage to axiom
+- [x] deploy hono to cf
+- [x] get frontend talking to hono/trpc in cf
+- [ ] get popup working
 - [ ] theme picker (device/light/dark) in popup
+- [ ] add default / advanced mode (call server vs use own token/model choice) in popup
 - [ ] make it work for embeds on other sites as well
-- [ ] build summary fetching in server
-  - [ ] transcript fetching should probably still happen on client to prevent rate limiting
-  - [ ] figure out the best way to not make duplication feel bad
-  - [ ] log token usage to axiom
-- [ ] deploy hono to cf
-- [ ] get frontend talking to hono/trpc in cf
-- [ ] add default / advanced mode (call server vs use own token/model choice) to extension
 - [ ] add d1 to store summaries
   - [ ] unique on video id + title, or just video id?
   - [ ] send info about cache hits to axiom
+  - [ ] how to prevent jerks from sending fake summaries?
 - [ ] implement accounts (google oauth)
   - [ ] advanced mode should work without logging in
   - [ ] auth.js or clerk? (i think auth.js 5 runs fine on workers?)

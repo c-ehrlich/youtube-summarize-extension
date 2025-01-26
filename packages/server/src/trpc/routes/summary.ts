@@ -50,7 +50,7 @@ ${transcript}
 `;
 }
 
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 const TEST_SUMMARY = `What the hell happened to COD Warzone? The game has seen a significant decline in player engagement due to various gameplay and design issues.
 
@@ -73,9 +73,8 @@ export const getSummary = baseProcedure
     })
   )
   .query(async (opts) => {
-    console.log("tktk env from trpc procedure", opts.ctx.env);
-
     // TODO: check cache
+
     if (TEST_MODE) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return { summary: TEST_SUMMARY };

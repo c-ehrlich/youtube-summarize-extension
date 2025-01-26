@@ -6,7 +6,7 @@ import { createContext } from "./trpc/init";
 
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
-const foo: number = 1;
+const foo: number = 2;
 
 app.use("*", cors());
 

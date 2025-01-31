@@ -16,3 +16,5 @@ export const createAxiom = ({
     flush: () => axiom.flush(),
   };
 };
+
+export type AxiomProvider = ReturnType<typeof createAxiom>;

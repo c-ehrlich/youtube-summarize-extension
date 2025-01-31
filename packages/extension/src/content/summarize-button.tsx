@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { YoutubeTranscript } from "youtube-transcript";
 import { cn } from "../ui/util/cn";
 import ReactMarkdown from "react-markdown";
-import { trpc } from "../lib/trpc";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +12,7 @@ import {
 import React from "react";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { Button } from "../ui/primitives/button";
+import { BASE_URL } from "../lib/req";
 export function SummarizeButton({
   videoId,
   title,
@@ -57,8 +57,6 @@ const Content = ({
   title: string;
   channel: string;
 }) => {
-  const qc = useQueryClient();
-  const utils = trpc.useUtils();
   const videoInfoQuery = useQuery({
     enabled: !!videoId,
     staleTime: Infinity,
@@ -110,13 +108,22 @@ const Content = ({
     },
   });
 
-  const summaryQuery = trpc.summary.getSummary.useQuery(
-    // ok to asser because `enabled` checks that it exists
-    videoInfoQuery.data!,
-    {
-      enabled: !!videoInfoQuery.data,
-    }
-  );
+  const summaryQuery = useQuery({
+    queryKey: ["summary", videoId, title],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/summary`, {
+        method: "POST",
+        body: JSON.stringify({
+          videoId,
+          title,
+          author: channel,
+          transcript: videoInfoQuery.data?.transcript,
+          description: videoInfoQuery.data?.description,
+        }),
+      });
+      return response.json();
+    },
+  });
 
   if (videoInfoQuery.isLoading) {
     return <Loading text="Loading video info..." />;

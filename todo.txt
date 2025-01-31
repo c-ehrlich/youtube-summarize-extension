@@ -22,7 +22,9 @@
 - [x] get frontend talking to hono/trpc in cf
 - [x] get popup working
 - [x] make summary a POST request
-- [ ] <div class="ytp-videowall-still-image" style="background-image: url(&quot;https://i.ytimg.com/vi/TK8YA331eSA/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&amp;rs=AOn4CLDNiuLxE4ge2iukNpWgZWXzvfOpwA&quot;);"></div>
+- [ ] query refetches for no reason
+- [ ] 
+- [ ] also in end cards <div class="ytp-videowall-still-image" style="background-image: url(&quot;https://i.ytimg.com/vi/TK8YA331eSA/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&amp;rs=AOn4CLDNiuLxE4ge2iukNpWgZWXzvfOpwA&quot;);"></div>
 - [ ] get cva styles to work / or hardcode each variant
 - [ ] add d1 (for auth and summaries)
 - [ ] theme picker (device/light/dark) in popup

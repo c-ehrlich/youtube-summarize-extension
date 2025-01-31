@@ -6,25 +6,47 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, trpcClient } from "../lib/trpc";
 import { ThemeProvider } from "../ui/theme/theme-provider";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      //   staleTime: Infinity,
+      //   refetchOnWindowFocus: false,
+      //   refetchOnReconnect: false,
+    },
+  },
+});
+
+type Thumb =
+  | {
+      type: "regular";
+      element: HTMLElement;
+    }
+  | {
+      type: "end-card";
+      element: HTMLElement;
+    };
 
 const ButtonContainer = () => {
-  const [thumbnails, setThumbnails] = useState<HTMLElement[]>([]);
+  const [thumbnails, setThumbnails] = useState<Thumb[]>([]);
 
   useEffect(() => {
     const updateThumbnails = () => {
-      const currentThumbnails = Array.from(
-        document.querySelectorAll("ytd-thumbnail")
-      ) as HTMLElement[];
+      const currentThumbnails: Thumb[] = (
+        Array.from(document.querySelectorAll("ytd-thumbnail")) as HTMLElement[]
+      ).map((t) => ({
+        element: t,
+        type: "regular",
+      }));
 
       setThumbnails((prev) => {
-        const newThumbnails = currentThumbnails.filter(
+        const newThumbnails: Thumb[] = currentThumbnails.filter(
           (thumb) =>
-            !prev.includes(thumb) && !thumb.querySelector(".summarize-btn")
+            !prev.find((p) => p.element === thumb.element) &&
+            !thumb.element.querySelector(".summarize-btn")
         );
 
         newThumbnails.forEach((thumb) => {
-          thumb.style.position = "relative";
+          thumb.element.style.position = "relative";
         });
 
         return [...prev, ...newThumbnails];
@@ -43,27 +65,36 @@ const ButtonContainer = () => {
     <>
       {thumbnails.map((thumb, index) => {
         // Find the parent rich-grid-media element
-        const gridMedia = thumb.closest("ytd-rich-grid-media");
+
+        let title = "";
+        let channel = "";
+        let videoId = "";
+
+        const gridMedia =
+          thumb.element.closest("ytd-rich-grid-media") ??
+          thumb.element.closest("ytd-compact-video-renderer");
 
         // Extract video title
         const titleElement = gridMedia?.querySelector("#video-title");
-        const title = titleElement?.textContent?.trim() || "";
+        title = titleElement?.textContent?.trim() || "";
 
         // Extract channel name
-        const channelElement = gridMedia?.querySelector(
-          "#channel-name yt-formatted-string"
-        );
-        const channel = channelElement?.textContent?.trim() || "";
+        const channelElement =
+          gridMedia?.querySelector(".yt-formatted-string") ??
+          gridMedia?.querySelector(".ytd-channel-name");
+        channel = channelElement?.textContent?.trim() || "";
 
         // Extract video ID from thumbnail link
-        const anchor = thumb.querySelector("a#thumbnail") as HTMLAnchorElement;
+        const anchor = thumb.element.querySelector(
+          "a#thumbnail"
+        ) as HTMLAnchorElement;
         const urlParams = new URLSearchParams(anchor?.search || "");
-        const videoId = urlParams.get("v") || "";
+        videoId = urlParams.get("v") || "";
 
         return (
           <SummarizeButtonPortal
             key={index}
-            thumbnailElement={thumb}
+            thumbnailElement={thumb.element}
             videoId={videoId}
             title={title}
             channel={channel}

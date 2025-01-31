@@ -1,7 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { YoutubeTranscript } from "youtube-transcript";
 import { cn } from "../ui/util/cn";
 import ReactMarkdown from "react-markdown";
+import he from "he";
 import {
   Dialog,
   DialogContent,
@@ -76,7 +77,9 @@ const Content = ({
         throw new Error("No transcript found");
       }
 
-      const transcriptText = transcript.map((t) => t.text).join("\n");
+      const transcriptText = transcript
+        .map((t) => he.decode(t.text))
+        .join("\n");
 
       // Extract description from the response HTML
       const html = await descriptionResponse.text();
@@ -109,6 +112,7 @@ const Content = ({
   });
 
   const summaryQuery = useQuery({
+    enabled: !!videoInfoQuery.data,
     queryKey: ["summary", videoId, title],
     queryFn: async () => {
       const response = await fetch(`${BASE_URL}/summary`, {

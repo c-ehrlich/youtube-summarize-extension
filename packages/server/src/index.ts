@@ -52,6 +52,8 @@ api.post("/summary", ctxMiddleware, async (c) => {
     prompt: generatePrompt({
       transcript: transcript,
       title: title,
+      channel: author,
+      description: description,
     }),
   });
 
@@ -100,7 +102,7 @@ function generatePrompt({
   return `You are a helpful assistant that summarizes YouTube videos.
 If the title is a question or some other kind of clickbait, start by answering it with 1 sentence.
 Keep it short and concise - in most cases you should not need more than 5 bullet points.
-But you can make exceptions - for example if the video is a top10, tell me what the top10 things are and why.Return the summary in a markdown format (but no need to use a code block).
+But you can make exceptions - for example if the video is a top10, tell me what the top10 things are and why. Return the summary in a markdown format (but no need to use a code block).
 
 Please use the following information to help you give a good summary:
 

@@ -16,7 +16,7 @@ export function InitAppForm() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-red-400 to-red-100 flex flex-col items-center justify-center p-4">
       <main className="max-w-4xl w-full space-y-8">
         <header className="text-center space-y-4">
           <div className="flex justify-center">
@@ -37,7 +37,7 @@ export function InitAppForm() {
           </p>
         </header>
 
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle className="text-2xl">Sign in with Google</CardTitle>
             <CardDescription>Recommended for most users</CardDescription>
@@ -61,7 +61,8 @@ export function InitAppForm() {
           <Checkbox
             id="showAdvanced"
             checked={showAdvanced}
-            onCheckedChange={setShowAdvanced}
+            onCheckedChange={(checked) => setShowAdvanced(!!checked)}
+            className="bg-white"
           />
           <label
             htmlFor="showAdvanced"
@@ -72,7 +73,7 @@ export function InitAppForm() {
         </div>
 
         {showAdvanced && (
-          <Card>
+          <Card className="bg-white">
             <CardHeader>
               <CardTitle>Advanced Mode</CardTitle>
               <CardDescription>For power users</CardDescription>
@@ -100,13 +101,6 @@ export function InitAppForm() {
 
         <footer className="text-center text-gray-500 text-sm">
           <p>&copy; {new Date().getFullYear()} YouTube Summarizer</p>
-          <a
-            href="#"
-            className="inline-flex items-center text-blue-600 hover:underline mt-2"
-          >
-            Learn more about our privacy policy
-            <ExternalLink className="ml-1 h-4 w-4" />
-          </a>
         </footer>
       </main>
     </div>

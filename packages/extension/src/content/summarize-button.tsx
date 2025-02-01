@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import he from "he";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -43,7 +44,7 @@ export function SummarizeButton({
       </DialogTrigger>
       <DialogContent
         overlayClassName="z-[9998]"
-        className="bg-gray-100 dark:bg-gray-900 z-[9999] dark:text-white"
+        className="bg-gray-100 dark:bg-gray-900 z-[9999] dark:text-white !max-w-2xl"
       >
         <Content videoId={videoId} title={title} channel={channel} />
       </DialogContent>
@@ -159,11 +160,13 @@ const Content = ({
       </div>
       <DialogFooter className="flex gap-2">
         <Button variant="ghost" className="flex-1">
-          Watch
+          <a href={`https://www.youtube.com/watch?v=${videoId}`}>Watch</a>
         </Button>
-        <Button variant="default" className="flex-1">
-          Not interested
-        </Button>
+        <DialogClose asChild>
+          <Button variant="default" className="flex-1">
+            Not interested
+          </Button>
+        </DialogClose>
       </DialogFooter>
     </React.Fragment>
   );
@@ -173,6 +176,7 @@ function Loading({ text }: { text: string }) {
   return (
     <div className="flex flex-col gap-2 items-center justify-center text-gray-900 dark:text-gray-100">
       <LoadingSpinner size={32} />
+      <div className="h-2" />
       <p>{text}</p>
     </div>
   );

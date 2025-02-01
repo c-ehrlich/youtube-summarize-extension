@@ -16,7 +16,7 @@ export function InitAppForm() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-400 to-red-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <main className="max-w-4xl w-full space-y-8">
         <header className="text-center space-y-4">
           <div className="flex justify-center">
@@ -51,7 +51,12 @@ export function InitAppForm() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button size="lg" className="w-full text-lg">
+            <Button
+              variant="default"
+              color="red"
+              size="lg"
+              className="w-full text-lg"
+            >
               Sign in with Google
             </Button>
           </CardFooter>
@@ -92,7 +97,7 @@ export function InitAppForm() {
               </Alert>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full">
+              <Button variant="link" className="w-full">
                 Use Advanced Mode
               </Button>
             </CardFooter>

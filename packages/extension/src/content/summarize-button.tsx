@@ -14,6 +14,8 @@ import React from "react";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { Button } from "../ui/primitives/button";
 import { BASE_URL } from "../lib/req";
+import { errorToString } from "../ui/util/error-to-string";
+
 export function SummarizeButton({
   videoId,
   title,
@@ -138,14 +140,14 @@ const Content = ({
   }
 
   if (videoInfoQuery.isError) {
-    return <p>Error loading video info</p>;
+    return (
+      <p>Error loading video info: {errorToString(videoInfoQuery.error)}</p>
+    );
   }
 
   if (summaryQuery.isError) {
-    return <p>Error loading summary</p>;
+    return <p>Error loading summary: {errorToString(summaryQuery.error)}</p>;
   }
-
-  // TODO: NEXT - separate loading/error state for transcript and summary
 
   return (
     <React.Fragment>

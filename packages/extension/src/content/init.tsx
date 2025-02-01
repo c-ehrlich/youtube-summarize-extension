@@ -9,8 +9,8 @@ import { ThemeProvider } from "../ui/theme/theme-provider";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      //   staleTime: Infinity,
-      //   refetchOnWindowFocus: false,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
       //   refetchOnReconnect: false,
     },
   },

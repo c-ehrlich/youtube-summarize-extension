@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { SummarizeButton } from "./summarize-button";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { trpc, trpcClient } from "../lib/trpc";
 import { ThemeProvider } from "../ui/theme/theme-provider";
 
 const queryClient = new QueryClient({
@@ -141,11 +140,9 @@ export const Init = () => {
     const root = ReactDOM.createRoot(rootContainer);
     root.render(
       <ThemeProvider>
-        <trpc.Provider client={trpcClient} queryClient={queryClient}>
-          <QueryClientProvider client={queryClient}>
-            <ButtonContainer />
-          </QueryClientProvider>
-        </trpc.Provider>
+        <QueryClientProvider client={queryClient}>
+          <ButtonContainer />
+        </QueryClientProvider>
       </ThemeProvider>
     );
 

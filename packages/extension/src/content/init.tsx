@@ -29,24 +29,21 @@ const ButtonContainer = () => {
   const [thumbnails, setThumbnails] = useState<Thumb[]>([]);
 
   useEffect(() => {
-    const updateThumbnails = () => {
-      const regularThumbnails: Thumb[] = (
-        Array.from(document.querySelectorAll("ytd-thumbnail")) as HTMLElement[]
-      ).map((t) => ({
-        element: t,
-        type: "regular" as const,
-      }));
+    // Process new thumbnails that don't already have our button
+    const processThumbnails = (newElements: HTMLElement[]) => {
+      const regularThumbnails: Thumb[] = newElements
+        .filter((el) => el.matches("ytd-thumbnail"))
+        .map((t) => ({
+          element: t,
+          type: "regular" as const,
+        }));
 
-      const endCardThumbnails: Thumb[] = (
-        Array.from(
-          document.querySelectorAll(".ytp-videowall-still")
-        ) as HTMLElement[]
-      ).map((t) => ({
-        element: t,
-        type: "end-card" as const,
-      }));
-
-      console.log("tktk endcardthumbs", endCardThumbnails);
+      const endCardThumbnails: Thumb[] = newElements
+        .filter((el) => el.matches(".ytp-videowall-still"))
+        .map((t) => ({
+          element: t,
+          type: "end-card" as const,
+        }));
 
       const currentThumbnails = [...regularThumbnails, ...endCardThumbnails];
 
@@ -68,11 +65,66 @@ const ButtonContainer = () => {
       });
     };
 
-    updateThumbnails();
-    const interval = setInterval(updateThumbnails, 1000);
+    // Initial scan for existing thumbnails
+    const initialThumbnails = [
+      ...Array.from(document.querySelectorAll("ytd-thumbnail")),
+      ...Array.from(document.querySelectorAll(".ytp-videowall-still")),
+    ] as HTMLElement[];
 
+    processThumbnails(initialThumbnails);
+
+    // Set up mutation observer
+    const observer = new MutationObserver((mutations) => {
+      const newElements: HTMLElement[] = [];
+
+      mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          // Check added nodes
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement) {
+              // Direct match
+              if (
+                node.matches("ytd-thumbnail") ||
+                node.matches(".ytp-videowall-still")
+              ) {
+                newElements.push(node);
+              }
+              // Check children
+              node
+                .querySelectorAll("ytd-thumbnail, .ytp-videowall-still")
+                .forEach((el) => {
+                  newElements.push(el as HTMLElement);
+                });
+            }
+          });
+
+          // Check for modifications to existing containers that might add thumbnails
+          if (mutation.target instanceof HTMLElement) {
+            mutation.target
+              .querySelectorAll("ytd-thumbnail, .ytp-videowall-still")
+              .forEach((el) => {
+                if (!el.querySelector(".summarize-btn")) {
+                  newElements.push(el as HTMLElement);
+                }
+              });
+          }
+        }
+      });
+
+      if (newElements.length > 0) {
+        processThumbnails(newElements);
+      }
+    });
+
+    // Start observing with configuration
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // Cleanup
     return () => {
-      clearInterval(interval);
+      observer.disconnect();
     };
   }, []);
 

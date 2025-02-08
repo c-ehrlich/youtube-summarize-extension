@@ -21,14 +21,14 @@ compatibility_date = "2025-01-25"
 # binding = "MY_BUCKET"
 # bucket_name = "my-bucket"
 
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "my-database"
-# database_id = ""
-
 # [ai]
 # binding = "AI"
 
 [observability]
 enabled = true
 head_sampling_rate = 1
+
+[[d1_databases]]
+binding = "DB"
+database_name = "yt-summarize"
+database_id = "547521a5-4270-44de-9c91-7a58ed9a70ca"

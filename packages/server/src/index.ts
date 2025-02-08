@@ -2,8 +2,6 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createMiddleware } from "hono/factory";
-import { appRouter } from "./trpc";
-import { createContext } from "./trpc/init";
 import { OpenAIProvider } from "@ai-sdk/openai";
 import { openai } from "./lib/ai/init";
 import { AxiomProvider, createAxiom } from "./lib/axiom/axiom";

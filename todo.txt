@@ -22,27 +22,36 @@
 - [x] get frontend talking to hono/trpc in cf
 - [x] get popup working
 - [x] make summary a POST request
+- [x] get cva styles to work (was actually tailwind config missing colors etc)
+- [x] query refetches for no reason
+- [ ] make auth work
+  - [ ] https://github.dev/Dhravya/backend-api-kit/blob/main/package.json
 - [ ] use hono rpc https://hono.dev/docs/guides/rpc
-- [ ] query refetches for no reason
 - [ ] make sure we get title and channel in both main page and side cards
 - [ ] also in end cards <div class="ytp-videowall-still-image" style="background-image: url(&quot;https://i.ytimg.com/vi/TK8YA331eSA/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&amp;rs=AOn4CLDNiuLxE4ge2iukNpWgZWXzvfOpwA&quot;);"></div>
 - [ ] why does this extension hide channel "all videos"?
-- [ ] get cva styles to work / or hardcode each variant
 - [ ] add d1 (for auth and summaries)
 - [ ] theme picker (device/light/dark) in popup
 - [ ] add default / advanced mode (call server vs use own token/model choice) in popup
 - [ ] make it work for embeds on other sites as well
 - [ ] create welcome page with onboarding
-- [ ] add d1 to store summaries
-  - [ ] unique on video id + title, or just video id?
-  - [ ] send info about cache hits to axiom
-  - [ ] how to prevent jerks from sending fake summaries?
 - [ ] implement accounts (google oauth)
   - [ ] advanced mode should work without logging in
+  - [ ] better-auth?
+  - [ ] dhravya's starter?
   - [ ] auth.js or clerk? (i think auth.js 5 runs fine on workers?)
   - [ ] https://github.com/nextauthjs/next-auth/discussions/6021
   - [ ] either implement stripe (see next section) or figure out how to give free unlimited accounts to a few people and gate normal mode for everyone else?
 - [ ] better loading/error state for frontend
+- [ ] (?) CHAT WITH THE SUMMARY => ask follow-up questions
+  - [ ] clumsy implementation: send the transcript, summary, and chat history if exists, each time
+  - [ ] better implementation: create embeddings - https://chatgpt.com/share/e/67a1d001-c870-8005-b6b0-dbee12b89d9a
+    - [ ] https://platform.openai.com/docs/guides/embeddings
+    - [ ] precompute embeddings vs lazy - chatgpt gave cost and lag estimates, but test yourself!
+    - [ ] d1 vs vector db? - LanceDB, Weaviate, or Pinecone
+    - [ ] what % of videos are follow up questions asked on?
+    - [ ] cloudflare vectorize??? https://developers.cloudflare.com/vectorize/
+- [ ] switch to gemini 2.0 flash (mini?) - try in ai studio
 
 ## required to charge money for it
 
@@ -62,6 +71,10 @@
   - [ ] initial idea: 100 free summaries (not time based), then $1.99/month for unlimited (fair use)
 - [ ] use v0 to make a less shit ui
 - [ ] try to get real tailwind hmr working
+- [ ] add d1 to store summaries
+  - [ ] unique on video id + title, or just video id?
+  - [ ] send info about cache hits to axiom
+  - [ ] how to prevent jerks from sending fake summaries?
 
 ## after initial release
 

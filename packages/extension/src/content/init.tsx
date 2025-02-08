@@ -30,12 +30,25 @@ const ButtonContainer = () => {
 
   useEffect(() => {
     const updateThumbnails = () => {
-      const currentThumbnails: Thumb[] = (
+      const regularThumbnails: Thumb[] = (
         Array.from(document.querySelectorAll("ytd-thumbnail")) as HTMLElement[]
       ).map((t) => ({
         element: t,
-        type: "regular",
+        type: "regular" as const,
       }));
+
+      const endCardThumbnails: Thumb[] = (
+        Array.from(
+          document.querySelectorAll(".ytp-videowall-still")
+        ) as HTMLElement[]
+      ).map((t) => ({
+        element: t,
+        type: "end-card" as const,
+      }));
+
+      console.log("tktk endcardthumbs", endCardThumbnails);
+
+      const currentThumbnails = [...regularThumbnails, ...endCardThumbnails];
 
       setThumbnails((prev) => {
         const newThumbnails: Thumb[] = currentThumbnails.filter(
@@ -44,8 +57,11 @@ const ButtonContainer = () => {
             !thumb.element.querySelector(".summarize-btn")
         );
 
+        // Only set position relative for regular thumbnails
         newThumbnails.forEach((thumb) => {
-          thumb.element.style.position = "relative";
+          if (thumb.type === "regular") {
+            thumb.element.style.position = "relative";
+          }
         });
 
         return [...prev, ...newThumbnails];
@@ -63,32 +79,51 @@ const ButtonContainer = () => {
   return (
     <>
       {thumbnails.map((thumb, index) => {
-        // Find the parent rich-grid-media element
-
         let title = "";
         let channel = "";
         let videoId = "";
 
-        const gridMedia =
-          thumb.element.closest("ytd-rich-grid-media") ??
-          thumb.element.closest("ytd-compact-video-renderer");
+        if (thumb.type === "regular") {
+          // Handle regular thumbnail data extraction
+          const gridMedia =
+            thumb.element.closest("ytd-rich-grid-media") ??
+            thumb.element.closest("ytd-compact-video-renderer");
 
-        // Extract video title
-        const titleElement = gridMedia?.querySelector("#video-title");
-        title = titleElement?.textContent?.trim() || "";
+          // Extract video title
+          const titleElement = gridMedia?.querySelector("#video-title");
+          title = titleElement?.textContent?.trim() || "";
 
-        // Extract channel name
-        const channelElement =
-          gridMedia?.querySelector(".yt-formatted-string") ??
-          gridMedia?.querySelector(".ytd-channel-name");
-        channel = channelElement?.textContent?.trim() || "";
+          // Extract channel name
+          const channelElement =
+            gridMedia?.querySelector(".yt-formatted-string") ??
+            gridMedia?.querySelector(".ytd-channel-name");
+          channel = channelElement?.textContent?.trim() || "";
 
-        // Extract video ID from thumbnail link
-        const anchor = thumb.element.querySelector(
-          "a#thumbnail"
-        ) as HTMLAnchorElement;
-        const urlParams = new URLSearchParams(anchor?.search || "");
-        videoId = urlParams.get("v") || "";
+          // Extract video ID from thumbnail link
+          const anchor = thumb.element.querySelector(
+            "a#thumbnail"
+          ) as HTMLAnchorElement;
+          const urlParams = new URLSearchParams(anchor?.search || "");
+          videoId = urlParams.get("v") || "";
+        } else {
+          // Handle end card thumbnail data extraction
+          const titleElement = thumb.element.querySelector(
+            ".ytp-videowall-still-info-title"
+          );
+          title = titleElement?.textContent?.trim() || "";
+
+          const authorElement = thumb.element.querySelector(
+            ".ytp-videowall-still-info-author"
+          );
+          channel = authorElement?.textContent?.split("•")[0]?.trim() || "";
+
+          // Extract video ID from href
+          const href = thumb.element.getAttribute("href") || "";
+          const videoIdMatch = href.match(
+            /(?:\/watch\?v=|youtu\.be\/)([^&?]+)/
+          );
+          videoId = videoIdMatch?.[1] || "";
+        }
 
         return (
           <SummarizeButtonPortal
@@ -97,6 +132,7 @@ const ButtonContainer = () => {
             videoId={videoId}
             title={title}
             channel={channel}
+            type={thumb.type}
           />
         );
       })}
@@ -110,14 +146,27 @@ const SummarizeButtonPortal = ({
   videoId,
   title,
   channel,
+  type,
 }: {
   thumbnailElement: HTMLElement;
   videoId: string;
   title: string;
   channel: string;
+  type: "regular" | "end-card";
 }) => {
   const [container] = useState(() => document.createElement("div"));
 
+  useEffect(() => {
+    if (type === "end-card") {
+      // For end cards, position the button in the top-right corner
+      container.style.position = "absolute";
+      container.style.bottom = "0px";
+      container.style.left = "0px";
+      container.style.zIndex = "9990";
+    }
+  }, [container, type]);
+
+  // Separate effect for DOM mounting/unmounting
   useEffect(() => {
     thumbnailElement.appendChild(container);
     return () => {
@@ -125,8 +174,21 @@ const SummarizeButtonPortal = ({
     };
   }, [thumbnailElement, container]);
 
+  const handleWrapperClick = (e: React.MouseEvent) => {
+    if (type === "end-card") {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  };
+
   return createPortal(
-    <SummarizeButton videoId={videoId} title={title} channel={channel} />,
+    <div
+      onClick={handleWrapperClick}
+      onMouseDown={handleWrapperClick}
+      onMouseUp={handleWrapperClick}
+    >
+      <SummarizeButton videoId={videoId} title={title} channel={channel} />
+    </div>,
     container
   );
 };

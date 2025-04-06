@@ -5,6 +5,10 @@ import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Popup />
+    <p>
+      For now there is no way to configure a local api key. Please spin up a
+      copy of the server!
+    </p>
+    {/* <Popup /> */}
   </React.StrictMode>
 );

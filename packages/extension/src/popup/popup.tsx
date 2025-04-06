@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "../index.css";
+import { Button } from "../ui/primitives/button";
 
 export function Popup() {
   const [apiKey, setApiKey] = useState("");
@@ -57,6 +58,11 @@ export function Popup() {
     }
   };
 
+  const apiKeyStartsWithSk = apiKey.startsWith("sk-");
+  const apiKeyIsReasonablyLong = apiKey.length > 40;
+
+  const isMaybeValidApiKey = apiKeyStartsWithSk && apiKeyIsReasonablyLong;
+
   return (
     <div className="w-[300px] p-4 font-sans">
       <div className="flex flex-col gap-3">
@@ -74,12 +80,29 @@ export function Popup() {
             className="w-full p-2 border rounded"
           />
         </div>
-        <button
+
+        {apiKey.length > 0 ? (
+          <>
+            {!apiKeyStartsWithSk ? (
+              <p className="text-red-500">
+                Invalid API key format. Should start with 'sk-'.
+              </p>
+            ) : !apiKeyIsReasonablyLong ? (
+              <p className="text-red-500">
+                API key is too short. Please make sure you copied the entire
+                key.
+              </p>
+            ) : null}
+          </>
+        ) : null}
+
+        <Button
+          disabled={!isMaybeValidApiKey}
           onClick={handleSave}
           className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
         >
           Save
-        </button>
+        </Button>
         {status && (
           <div
             className={`p-2 rounded ${

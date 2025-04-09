@@ -314,16 +314,33 @@ const SummarizeButtonPortal = ({
     } else if (type === "regular") {
       // For regular thumbnails, keep the relative positioning
       container.style.position = "relative";
+      container.style.width = "100%";
+      container.style.height = "100%";
     }
-  }, [container, type]);
 
-  // Separate effect for DOM mounting/unmounting
-  useEffect(() => {
+    container.classList.add("yt-summarize-container");
+
     thumbnailElement.appendChild(container);
+
+    return () => {
+      container.remove();
+      thumbnailElement.removeChild(container);
+    };
+  }, [container, thumbnailElement, type]);
+
+  useEffect(() => {
+    thumbnailElement
+      .querySelectorAll(".yt-summarize-container")
+      .forEach((el) => {
+        el.remove();
+      });
+
+    thumbnailElement.appendChild(container);
+
     return () => {
       thumbnailElement.removeChild(container);
     };
-  }, [thumbnailElement, container]);
+  }, [container, thumbnailElement]);
 
   const handleWrapperClick = (e: React.MouseEvent) => {
     if (type === "end-card") {

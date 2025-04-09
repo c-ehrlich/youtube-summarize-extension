@@ -24,6 +24,7 @@
 - [x] get cva styles to work (was actually tailwind config missing colors etc)
 - [x] query refetches for no reason
 - [x] what if instead of a popover it's a modal, and on the bottom there are two buttons: "View Video", "Not Interested" (which actually sends "not interested" to YouTube)
+- [x] make it work on search results
 - [ ] make auth work
   - [ ] https://github.dev/Dhravya/backend-api-kit/blob/main/package.json
 - [ ] use hono rpc https://hono.dev/docs/guides/rpc

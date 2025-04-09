@@ -21,23 +21,33 @@ export function SummarizeButton({
   videoId,
   title,
   channel,
+  type,
 }: {
   videoId: string;
   title: string;
   channel: string;
+  type: "regular" | "end-card" | "metadata";
 }) {
+  const buttonStyles =
+    type === "metadata"
+      ? {} // No special positioning for metadata
+      : {
+          position: "absolute" as const,
+          bottom: "8px",
+          left: "8px",
+        };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <button
           className={cn(
             "summarize-btn", // 🐉 needed for application logic (to check if there is already a button)
-            "absolute z-50 bg-red-500 text-white border-none py-1 px-3 text-lg cursor-pointer rounded-md"
+            "z-50 bg-red-500 text-white border-none py-1 px-3 text-lg cursor-pointer rounded-md",
+            // Only add absolute positioning class for non-metadata types
+            type !== "metadata" && "absolute"
           )}
-          style={{
-            bottom: "8px",
-            left: "8px",
-          }}
+          style={buttonStyles}
         >
           Summarize
         </button>
@@ -61,6 +71,7 @@ const Content = ({
   title: string;
   channel: string;
 }) => {
+  console.log("tktk videoId", videoId);
   const videoInfoQuery = useQuery({
     enabled: !!videoId,
     staleTime: Infinity,

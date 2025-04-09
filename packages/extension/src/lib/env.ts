@@ -1,6 +1,6 @@
 const hasUpdateUrl = "update_url" in chrome.runtime.getManifest();
 // export const isProdMode = hasUpdateUrl;
-export const isProdMode = false;
+export const isProdMode = true;
 
 type Env = {
   backendUrl: string;

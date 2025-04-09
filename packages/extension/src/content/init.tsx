@@ -23,6 +23,10 @@ type Thumb =
   | {
       type: "end-card";
       element: HTMLElement;
+    }
+  | {
+      type: "metadata";
+      element: HTMLElement;
     };
 
 const ButtonContainer = () => {
@@ -31,6 +35,14 @@ const ButtonContainer = () => {
   useEffect(() => {
     // Process new thumbnails that don't already have our button
     const processThumbnails = (newElements: HTMLElement[]) => {
+      // First, remove any existing buttons from the elements we're about to process
+      newElements.forEach((el) => {
+        const existingBtn = el.querySelector(".summarize-btn");
+        if (existingBtn) {
+          existingBtn.remove();
+        }
+      });
+
       const regularThumbnails: Thumb[] = newElements
         .filter((el) => el.matches("ytd-thumbnail"))
         .map((t) => ({
@@ -45,63 +57,120 @@ const ButtonContainer = () => {
           type: "end-card" as const,
         }));
 
-      const currentThumbnails = [...regularThumbnails, ...endCardThumbnails];
+      const metadataThumbnails: Thumb[] = newElements
+        .filter((el) => {
+          // Only select metadata lines that have a valid video-title link in their parent meta div
+          if (!el.matches("#metadata-line")) return false;
+          const metaDiv = el.closest("#meta");
+          const titleAnchor = metaDiv?.querySelector("a#video-title");
+          return !!titleAnchor;
+        })
+        .map((t) => ({
+          element: t,
+          type: "metadata" as const,
+        }));
+
+      const currentThumbnails = [
+        ...regularThumbnails,
+        ...endCardThumbnails,
+        ...metadataThumbnails,
+      ];
 
       setThumbnails((prev) => {
-        const newThumbnails: Thumb[] = currentThumbnails.filter(
-          (thumb) =>
-            !prev.find((p) => p.element === thumb.element) &&
-            !thumb.element.querySelector(".summarize-btn")
+        // Remove any thumbnails that we're about to replace
+        const filteredPrev = prev.filter(
+          (p) => !currentThumbnails.some((c) => c.element === p.element)
         );
 
-        // Only set position relative for regular thumbnails
-        newThumbnails.forEach((thumb) => {
-          if (thumb.type === "regular") {
-            thumb.element.style.position = "relative";
-          }
-        });
-
-        return [...prev, ...newThumbnails];
+        return [...filteredPrev, ...currentThumbnails];
       });
+    };
+
+    // Add function to handle media container changes
+    const processMediaContainer = () => {
+      const mediaContainer = document.querySelector(
+        "#media-container-link"
+      ) as HTMLAnchorElement;
+      if (!mediaContainer) return;
+
+      const videoPlayer = document.querySelector(
+        ".html5-video-player"
+      ) as HTMLElement;
+      if (!videoPlayer || videoPlayer.querySelector(".summarize-btn")) return;
+
+      const href = mediaContainer.getAttribute("href") || "";
+      const videoIdMatch = href.match(/\/watch\?v=([^&?]+)/);
+      const videoId = videoIdMatch?.[1] || "";
+
+      if (videoId) {
+        setThumbnails((prev) => {
+          if (prev.some((thumb) => thumb.element === videoPlayer)) return prev;
+
+          return [
+            ...prev,
+            {
+              type: "regular",
+              element: videoPlayer,
+            },
+          ];
+        });
+      }
     };
 
     // Initial scan for existing thumbnails
     const initialThumbnails = [
       ...Array.from(document.querySelectorAll("ytd-thumbnail")),
       ...Array.from(document.querySelectorAll(".ytp-videowall-still")),
+      ...Array.from(document.querySelectorAll("#metadata-line")),
     ] as HTMLElement[];
 
     processThumbnails(initialThumbnails);
+    processMediaContainer(); // Initial check for media container
 
     // Set up mutation observer
     const observer = new MutationObserver((mutations) => {
       const newElements: HTMLElement[] = [];
 
       mutations.forEach((mutation) => {
+        // Check for media container link href changes
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "href" &&
+          mutation.target instanceof HTMLElement &&
+          mutation.target.id === "media-container-link"
+        ) {
+          processMediaContainer();
+          return;
+        }
+
         if (mutation.type === "childList") {
-          // Check added nodes
           mutation.addedNodes.forEach((node) => {
             if (node instanceof HTMLElement) {
               // Direct match
               if (
                 node.matches("ytd-thumbnail") ||
-                node.matches(".ytp-videowall-still")
+                node.matches(".ytp-videowall-still") ||
+                node.matches("#metadata-line")
               ) {
                 newElements.push(node);
               }
               // Check children
               node
-                .querySelectorAll("ytd-thumbnail, .ytp-videowall-still")
+                .querySelectorAll(
+                  "ytd-thumbnail, .ytp-videowall-still, #metadata-line"
+                )
                 .forEach((el) => {
                   newElements.push(el as HTMLElement);
                 });
             }
           });
 
-          // Check for modifications to existing containers that might add thumbnails
+          // Check for modifications to existing containers
           if (mutation.target instanceof HTMLElement) {
             mutation.target
-              .querySelectorAll("ytd-thumbnail, .ytp-videowall-still")
+              .querySelectorAll(
+                "ytd-thumbnail, .ytp-videowall-still, #metadata-line"
+              )
               .forEach((el) => {
                 if (!el.querySelector(".summarize-btn")) {
                   newElements.push(el as HTMLElement);
@@ -116,10 +185,12 @@ const ButtonContainer = () => {
       }
     });
 
-    // Start observing with configuration
+    // Update observer configuration to include attributes
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+      attributes: true,
+      attributeFilter: ["href"],
     });
 
     // Cleanup
@@ -135,7 +206,28 @@ const ButtonContainer = () => {
         let channel = "";
         let videoId = "";
 
-        if (thumb.type === "regular") {
+        if (thumb.type === "metadata") {
+          console.log("thumb", thumb);
+          // For metadata, walk up to find #meta and then find video-title link
+          const metaDiv = thumb.element.closest("#meta");
+          console.log("tktk metaDiv", metaDiv);
+          const titleAnchor = metaDiv?.querySelector(
+            "a#video-title"
+          ) as HTMLAnchorElement;
+          console.log("tktk titleAnchor", titleAnchor);
+
+          if (titleAnchor) {
+            title = titleAnchor.textContent?.trim() || "";
+            const urlParams = new URLSearchParams(titleAnchor.search);
+            videoId = urlParams.get("v") || "";
+
+            // Find channel name
+            const channelElement =
+              metaDiv?.querySelector(".yt-formatted-string") ??
+              metaDiv?.querySelector(".ytd-channel-name");
+            channel = channelElement?.textContent?.trim() || "";
+          }
+        } else if (thumb.type === "regular") {
           // Handle regular thumbnail data extraction
           const gridMedia =
             thumb.element.closest("ytd-rich-grid-media") ??
@@ -152,7 +244,7 @@ const ButtonContainer = () => {
           channel = channelElement?.textContent?.trim() || "";
 
           // Extract video ID from thumbnail link
-          const anchor = thumb.element.querySelector(
+          const anchor = gridMedia?.querySelector(
             "a#thumbnail"
           ) as HTMLAnchorElement;
           const urlParams = new URLSearchParams(anchor?.search || "");
@@ -204,7 +296,7 @@ const SummarizeButtonPortal = ({
   videoId: string;
   title: string;
   channel: string;
-  type: "regular" | "end-card";
+  type: "regular" | "end-card" | "metadata";
 }) => {
   const [container] = useState(() => document.createElement("div"));
 
@@ -214,7 +306,14 @@ const SummarizeButtonPortal = ({
       container.style.position = "absolute";
       container.style.bottom = "0px";
       container.style.left = "0px";
-      container.style.zIndex = "9990";
+      container.style.zIndex = "99999";
+    } else if (type === "metadata") {
+      // For metadata line, just add some margin and display inline
+      container.style.marginLeft = "8px";
+      container.style.display = "inline-block";
+    } else if (type === "regular") {
+      // For regular thumbnails, keep the relative positioning
+      container.style.position = "relative";
     }
   }, [container, type]);
 
@@ -239,7 +338,12 @@ const SummarizeButtonPortal = ({
       onMouseDown={handleWrapperClick}
       onMouseUp={handleWrapperClick}
     >
-      <SummarizeButton videoId={videoId} title={title} channel={channel} />
+      <SummarizeButton
+        videoId={videoId}
+        title={title}
+        channel={channel}
+        type={type}
+      />
     </div>,
     container
   );

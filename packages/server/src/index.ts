@@ -104,6 +104,7 @@ Some examples on how to be useful:
   - Bad: "The host takes both shoes for a run, sharing insights on their performance and suitability for speed training."
   - Good: "The host takes both shoes for a run, and concludes that the Adidas shoe is faster but the Saucony shoe is a better fun fast shoe for most runners."
 - If the video is a review, tell me the score, and what the pros and cons are, as well as comparisons to other products if the reviewer made them.
+- Don't mention that the speaker is asking viewers to like, subscribe, etc.
 </instructions>
 
 Please use the following information to help you give a good summary:`;

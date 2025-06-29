@@ -1,7 +1,6 @@
 /** @jsxImportSource solid-js */
 import { createSignal } from "solid-js";
 import { cn } from "../utils/cn";
-import buttonStyles from "../Button.module.css";
 import styles from "./SummarizeButton.module.css";
 import {
   Dialog,
@@ -31,12 +30,11 @@ type ButtonPortalInfo = VideoInfo & {
 export const SummarizeButton = (props: ButtonPortalInfo) => {
   const [isOpen, setIsOpen] = createSignal(false);
 
-  const containerClasses = cn(buttonStyles.container, {
-    [buttonStyles.absolute]: props.type !== "metadata",
-    [buttonStyles.bottomLeft]:
-      props.type !== "end-card" && props.type !== "metadata",
-    [buttonStyles.bottomLeftZero]: props.type === "end-card",
-    [buttonStyles.inlineBlock]: props.type === "metadata",
+  const containerClasses = cn(styles.container, {
+    [styles.absolute]: props.type !== "metadata",
+    [styles.bottomLeft]: props.type !== "end-card" && props.type !== "metadata",
+    [styles.bottomLeftZero]: props.type === "end-card",
+    [styles.inlineBlock]: props.type === "metadata",
   });
 
   return (
@@ -50,7 +48,6 @@ export const SummarizeButton = (props: ButtonPortalInfo) => {
       >
         <DialogTrigger
           class={cn(
-            buttonStyles.button,
             "summarize-btn",
             styles.button,
             props.type !== "metadata" && styles.absolute

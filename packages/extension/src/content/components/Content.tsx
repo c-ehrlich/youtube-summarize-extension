@@ -23,41 +23,34 @@ export const Content = (props: {
     channel: props.channel,
   });
 
+  const isLoading = () => videoInfoQuery.isLoading || summaryQuery.isLoading;
+  const hasError = () => videoInfoQuery.isError || summaryQuery.isError;
+  
+  const loadingText = () => {
+    if (videoInfoQuery.isLoading) return "Loading video info...";
+    if (summaryQuery.isLoading) return "Loading summary...";
+    return "";
+  };
+
+  const errorMessage = () => {
+    if (videoInfoQuery.isError) {
+      return `Error loading video info: ${errorToString(videoInfoQuery.error)}`;
+    }
+    if (summaryQuery.isError) {
+      return `Error loading summary: ${errorToString(summaryQuery.error)}`;
+    }
+    return "";
+  };
+
   return (
     <Show
-      when={
-        !videoInfoQuery.isLoading &&
-        !summaryQuery.isLoading &&
-        !videoInfoQuery.isError &&
-        !summaryQuery.isError
-      }
+      when={!isLoading() && !hasError()}
       fallback={
         <Show
-          when={videoInfoQuery.isLoading}
-          fallback={
-            <Show
-              when={summaryQuery.isLoading}
-              fallback={
-                <Show
-                  when={videoInfoQuery.isError}
-                  fallback={
-                    <p>
-                      Error loading summary: {errorToString(summaryQuery.error)}
-                    </p>
-                  }
-                >
-                  <p>
-                    Error loading video info:{" "}
-                    {errorToString(videoInfoQuery.error)}
-                  </p>
-                </Show>
-              }
-            >
-              <Loading text="Loading summary..." />
-            </Show>
-          }
+          when={isLoading()}
+          fallback={<p>{errorMessage()}</p>}
         >
-          <Loading text="Loading video info..." />
+          <Loading text={loadingText()} />
         </Show>
       }
     >

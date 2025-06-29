@@ -15,6 +15,11 @@ export default defineConfig({
     postcss: {
       plugins: [tailwindcss, autoprefixer],
     },
+    modules: {
+      // Enable CSS modules for .module.css files
+      localsConvention: 'camelCase',
+      generateScopedName: '[name]__[local]___[hash:base64:5]',
+    },
   },
   server: {
     watch: {

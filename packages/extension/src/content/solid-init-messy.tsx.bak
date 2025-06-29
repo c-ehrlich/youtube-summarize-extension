@@ -2,13 +2,195 @@
 import { render } from "solid-js/web";
 import { createSignal, onMount, onCleanup, For } from "solid-js";
 import { cn } from "./utils/cn";
-import styles from "./Button.module.css";
+
+// Inject styles directly with maximum specificity
+const injectStyles = () => {
+  const styleId = "yt-summarize-styles";
+  if (document.getElementById(styleId)) return;
+
+  const style = document.createElement("style");
+  style.id = styleId;
+  style.textContent = `
+    /* YouTube Summarize Extension Styles */
+    .yt-summarize-container {
+      all: initial !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      position: relative !important;
+      z-index: 99999 !important;
+      pointer-events: auto !important;
+    }
+    
+    .yt-summarize-container * {
+      all: unset !important;
+      display: revert !important;
+      box-sizing: border-box !important;
+      font-family: inherit !important;
+    }
+    
+    .yt-summarize-container.absolute {
+      position: absolute !important;
+    }
+    
+    .yt-summarize-container.bottom-0 {
+      bottom: 0px !important;
+    }
+    
+    .yt-summarize-container.bottom-2 {
+      bottom: 0.5rem !important;
+    }
+    
+    .yt-summarize-container.left-0 {
+      left: 0px !important;
+    }
+    
+    .yt-summarize-container.left-2 {
+      left: 0.5rem !important;
+    }
+    
+    .yt-summarize-container.inline-block {
+      display: inline-block !important;
+    }
+    
+    .yt-summarize-container.ml-2 {
+      margin-left: 0.5rem !important;
+    }
+    
+    /* Common Tailwind utilities */
+    .yt-summarize-container.bg-white {
+      background-color: white !important;
+    }
+    
+    .yt-summarize-container.bg-red-500 {
+      background-color: #ef4444 !important;
+    }
+    
+    .yt-summarize-container.bg-red-600 {
+      background-color: #dc2626 !important;
+    }
+    
+    .yt-summarize-container.text-white {
+      color: white !important;
+    }
+    
+    .yt-summarize-container.text-black {
+      color: black !important;
+    }
+    
+    .yt-summarize-container.px-2 {
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+    
+    .yt-summarize-container.px-3 {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+    
+    .yt-summarize-container.px-4 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+    
+    .yt-summarize-container.py-1 {
+      padding-top: 0.25rem !important;
+      padding-bottom: 0.25rem !important;
+    }
+    
+    .yt-summarize-container.py-2 {
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+    }
+    
+    .yt-summarize-container.rounded {
+      border-radius: 0.25rem !important;
+    }
+    
+    .yt-summarize-container.rounded-md {
+      border-radius: 0.375rem !important;
+    }
+    
+    .yt-summarize-container.rounded-lg {
+      border-radius: 0.5rem !important;
+    }
+    
+    .yt-summarize-container.shadow {
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+    }
+    
+    .yt-summarize-container.shadow-lg {
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+    }
+    
+    .yt-summarize-container.text-xs {
+      font-size: 0.75rem !important;
+      line-height: 1rem !important;
+    }
+    
+    .yt-summarize-container.text-sm {
+      font-size: 0.875rem !important;
+      line-height: 1.25rem !important;
+    }
+    
+    .yt-summarize-container.font-bold {
+      font-weight: 700 !important;
+    }
+    
+    .yt-summarize-container.cursor-pointer {
+      cursor: pointer !important;
+    }
+    
+    .yt-summarize-container.transition-colors {
+      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke !important;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition-duration: 150ms !important;
+    }
+    
+    .yt-summarize-container .summarize-btn {
+      all: unset !important;
+      background-color: #ef4444 !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 0.25rem !important;
+      padding: 0.375rem 0.75rem !important;
+      font-size: 0.75rem !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: background-color 0.15s ease-in-out !important;
+      pointer-events: auto !important;
+      position: relative !important;
+      z-index: 99999 !important;
+      text-decoration: none !important;
+    }
+    
+    .yt-summarize-container .summarize-btn:hover {
+      background-color: #dc2626 !important;
+    }
+    
+    .yt-summarize-container .summarize-btn:focus {
+      outline: 2px solid #ef4444 !important;
+      outline-offset: 2px !important;
+    }
+  `;
+
+  document.head.appendChild(style);
+};
 
 type VideoInfo = {
   videoId: string;
   title: string;
   channel: string;
-  type: "regular" | "end-card" | "metadata" | "player" | "shorts" | "live" | "premiere";
+  type:
+    | "regular"
+    | "end-card"
+    | "metadata"
+    | "player"
+    | "shorts"
+    | "live"
+    | "premiere";
 };
 
 type ButtonPortalInfo = VideoInfo & {
@@ -19,22 +201,23 @@ const SolidSummarizeButton = (props: ButtonPortalInfo) => {
   const handleClick = (e: Event) => {
     e.preventDefault();
     e.stopPropagation();
+    // For now, show alert - we can implement actual summarization later
     alert(
       `Summarize: ${props.title}\nChannel: ${props.channel}\nVideo ID: ${props.videoId}`
     );
   };
 
-  const containerClasses = cn(styles.container, {
-    [styles.absolute]: props.type !== "metadata",
-    [styles.bottomLeft]: props.type !== "end-card" && props.type !== "metadata",
-    [styles.bottomLeftZero]: props.type === "end-card",
-    [styles.inlineBlock]: props.type === "metadata",
+  const containerClasses = cn("yt-summarize-container", {
+    "absolute bottom-0 left-0": props.type === "end-card",
+    "inline-block ml-2": props.type === "metadata",
+    "absolute bottom-2 left-2":
+      props.type !== "end-card" && props.type !== "metadata",
   });
 
   return (
     <div class={containerClasses}>
-      <button 
-        class={cn(styles.button, "summarize-btn")}
+      <button
+        class="summarize-btn bg-red-500 text-white px-3 py-1 rounded text-xs font-bold cursor-pointer transition-colors"
         onClick={handleClick}
       >
         Summarize
@@ -47,11 +230,13 @@ const SolidButtonPortal = (props: ButtonPortalInfo) => {
   let containerRef!: HTMLDivElement;
 
   onMount(() => {
+    // Inject the container into the thumbnail element
     props.thumbnailElement.appendChild(containerRef);
     console.log(`[SolidYouTube] Injected button for: ${props.title}`);
   });
 
   onCleanup(() => {
+    // Clean up when component is destroyed
     try {
       if (containerRef && containerRef.parentNode) {
         containerRef.parentNode.removeChild(containerRef);
@@ -76,6 +261,7 @@ const SolidButtonContainer = () => {
   let mutationObserver: MutationObserver | null = null;
   const processed = new Set<HTMLElement>();
 
+  // YouTube detection logic (enhanced from backup)
   const detectThumbnails = (): ButtonPortalInfo[] => {
     const found: ButtonPortalInfo[] = [];
 
@@ -87,7 +273,10 @@ const SolidButtonContainer = () => {
         if (processed.has(htmlElement)) return;
 
         // Check if already has a button
-        if (htmlElement.querySelector('.summarize-btn')) return;
+        if (
+          htmlElement.querySelector(".summarize-btn, .yt-summarize-container")
+        )
+          return;
 
         const videoInfo = extractVideoInfoFromRegular(htmlElement);
         if (videoInfo) {
@@ -96,18 +285,24 @@ const SolidButtonContainer = () => {
             title: videoInfo.title,
             channel: videoInfo.channel,
             type: getVideoType(htmlElement),
-            thumbnailElement: htmlElement
+            thumbnailElement: htmlElement,
           });
           processed.add(htmlElement);
         }
       });
 
       // Detect end card thumbnails
-      const endCardThumbnails = document.querySelectorAll(".ytp-videowall-still");
+      const endCardThumbnails = document.querySelectorAll(
+        ".ytp-videowall-still"
+      );
       endCardThumbnails.forEach((element) => {
         const htmlElement = element as HTMLElement;
         if (processed.has(htmlElement)) return;
-        if (htmlElement.querySelector('.summarize-btn')) return;
+
+        if (
+          htmlElement.querySelector(".summarize-btn, .yt-summarize-container")
+        )
+          return;
 
         const videoInfo = extractVideoInfoFromEndCard(htmlElement);
         if (videoInfo) {
@@ -116,7 +311,7 @@ const SolidButtonContainer = () => {
             title: videoInfo.title,
             channel: videoInfo.channel,
             type: "end-card",
-            thumbnailElement: htmlElement
+            thumbnailElement: htmlElement,
           });
           processed.add(htmlElement);
         }
@@ -143,7 +338,9 @@ const SolidButtonContainer = () => {
       );
       const channel = channelElement?.textContent?.trim() || "";
 
-      const anchor = container.querySelector("a#thumbnail") as HTMLAnchorElement;
+      const anchor = container.querySelector(
+        "a#thumbnail"
+      ) as HTMLAnchorElement;
       if (!anchor) return null;
 
       const urlParams = new URLSearchParams(anchor.search || "");
@@ -153,17 +350,24 @@ const SolidButtonContainer = () => {
 
       return { videoId, title, channel };
     } catch (error) {
-      console.error("[SolidYouTube] Error extracting regular video info:", error);
+      console.error(
+        "[SolidYouTube] Error extracting regular video info:",
+        error
+      );
       return null;
     }
   };
 
   const extractVideoInfoFromEndCard = (element: HTMLElement) => {
     try {
-      const titleElement = element.querySelector(".ytp-videowall-still-info-title");
+      const titleElement = element.querySelector(
+        ".ytp-videowall-still-info-title"
+      );
       const title = titleElement?.textContent?.trim() || "";
 
-      const authorElement = element.querySelector(".ytp-videowall-still-info-author");
+      const authorElement = element.querySelector(
+        ".ytp-videowall-still-info-author"
+      );
       const channel = authorElement?.textContent?.split("•")[0]?.trim() || "";
 
       const href = element.getAttribute("href") || "";
@@ -174,7 +378,10 @@ const SolidButtonContainer = () => {
 
       return { videoId, title, channel };
     } catch (error) {
-      console.error("[SolidYouTube] Error extracting end card video info:", error);
+      console.error(
+        "[SolidYouTube] Error extracting end card video info:",
+        error
+      );
       return null;
     }
   };
@@ -223,16 +430,18 @@ const SolidButtonContainer = () => {
     debounceTimer = window.setTimeout(() => {
       processPage();
       debounceTimer = null;
-    }, 500);
+    }, 500); // Conservative debounce
   };
 
   onMount(() => {
     console.log("[SolidYouTube] Initializing...");
 
+    // Initial processing with delay
     setTimeout(() => {
       processPage();
     }, 1000);
 
+    // Set up mutation observer
     mutationObserver = new MutationObserver((mutations) => {
       const hasSignificantChanges = mutations.some(
         (mutation) =>
@@ -250,8 +459,10 @@ const SolidButtonContainer = () => {
       attributes: false,
     });
 
+    // Listen for YouTube navigation
     const handleNavigation = () => {
       console.log("[SolidYouTube] Navigation detected");
+      // Clear existing thumbnails on navigation
       setButtons([]);
       processed.clear();
       setTimeout(() => processPage(), 1000);
@@ -271,6 +482,11 @@ const SolidButtonContainer = () => {
     });
   });
 
+  console.log(
+    "[SolidButtonContainer] Rendering with buttons:",
+    buttons().length
+  );
+
   return (
     <For each={buttons()}>{(button) => <SolidButtonPortal {...button} />}</For>
   );
@@ -278,9 +494,12 @@ const SolidButtonContainer = () => {
 
 // Initialize the app
 const init = () => {
+  // Inject styles first
+  injectStyles();
+
   const container = document.createElement("div");
   container.id = "solid-youtube-summarize-root";
-  container.style.display = "none";
+  container.style.display = "none"; // Hide the container itself
   document.body.appendChild(container);
 
   render(() => <SolidButtonContainer />, container);

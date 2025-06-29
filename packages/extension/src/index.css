@@ -58,3 +58,17 @@ body {
   --destructive-foreground: #f9fafb;
   --ring: #4b5563;
 }
+
+/* Animation utilities */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

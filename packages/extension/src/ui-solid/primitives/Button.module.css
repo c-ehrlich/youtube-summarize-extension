@@ -31,13 +31,26 @@
 
 /* Variants */
 .default {
-  background-color: #3b82f6;
-  color: white;
+  background-color: #f9fafb;
+  color: #111827;
+  border: 1px solid #e5e7eb;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .default:hover {
-  background-color: #2563eb;
+  background-color: #f3f4f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .default {
+    background-color: #f9fafb;
+    color: #111827;
+    border-color: #e5e7eb;
+  }
+  
+  .default:hover {
+    background-color: #e5e7eb;
+  }
 }
 
 .destructive {
@@ -78,8 +91,19 @@
 }
 
 .ghost:hover {
-  background-color: #f9fafb;
+  background-color: #f3f4f6;
   color: #111827;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ghost {
+    color: #d1d5db;
+  }
+  
+  .ghost:hover {
+    background-color: #374151;
+    color: #f9fafb;
+  }
 }
 
 .link {

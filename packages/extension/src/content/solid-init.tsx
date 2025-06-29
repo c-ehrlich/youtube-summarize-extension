@@ -1,6 +1,13 @@
 /** @jsxImportSource solid-js */
 import { render } from "solid-js/web";
-import { createSignal, onMount, onCleanup, For, Show } from "solid-js";
+import {
+  createSignal,
+  onMount,
+  onCleanup,
+  For,
+  Show,
+  createEffect,
+} from "solid-js";
 import { cn } from "./utils/cn";
 import buttonStyles from "./Button.module.css";
 import {
@@ -121,6 +128,10 @@ const Content = (props: {
 const SolidSummarizeButton = (props: ButtonPortalInfo) => {
   const [isOpen, setIsOpen] = createSignal(false);
 
+  createEffect(() => {
+    console.log("tktk isOpen", isOpen());
+  });
+
   const containerClasses = cn(buttonStyles.container, {
     [buttonStyles.absolute]: props.type !== "metadata",
     [buttonStyles.bottomLeft]:
@@ -131,7 +142,13 @@ const SolidSummarizeButton = (props: ButtonPortalInfo) => {
 
   return (
     <div class={containerClasses}>
-      <Dialog open={isOpen()} onOpenChange={setIsOpen}>
+      <Dialog
+        open={isOpen()}
+        onOpenChange={(open) => {
+          console.log("Dialog onOpenChange called with:", open);
+          setIsOpen(open);
+        }}
+      >
         <DialogTrigger
           class={cn(
             buttonStyles.button,
@@ -148,9 +165,11 @@ const SolidSummarizeButton = (props: ButtonPortalInfo) => {
                   left: "8px",
                 }
           }
-          onClick={() => {
-            console.log("Dialog trigger clicked!");
-            setIsOpen(true);
+          onPointerDown={(e: any) => {
+            e.stopPropagation();
+          }}
+          onMouseDown={(e: any) => {
+            e.stopPropagation();
           }}
         >
           Summarize
@@ -159,6 +178,7 @@ const SolidSummarizeButton = (props: ButtonPortalInfo) => {
           overlayClass="z-[9998]"
           class="bg-gray-100 dark:bg-gray-900 z-[9999] dark:text-white !max-w-2xl"
         >
+          <p>testyyyyyy</p>
           <Content
             videoId={props.videoId}
             title={props.title}
@@ -421,7 +441,11 @@ const SolidButtonContainer = () => {
 const init = () => {
   const container = document.createElement("div");
   container.id = "solid-youtube-summarize-root";
-  container.style.display = "none";
+  container.style.position = "absolute";
+  container.style.top = "-9999px";
+  container.style.left = "-9999px";
+  container.style.visibility = "hidden";
+  container.style.pointerEvents = "none";
   document.body.appendChild(container);
 
   render(

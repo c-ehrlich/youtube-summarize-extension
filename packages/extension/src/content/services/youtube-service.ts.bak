@@ -3,17 +3,16 @@
  * Handles all YouTube-specific DOM operations and SPA navigation
  */
 
+import { ThumbnailDetector, ThumbnailInfo } from './thumbnail-detector';
+
 export interface YouTubeNavigationEvent {
   type: 'start' | 'finish';
   url: string;
   timestamp: number;
 }
 
-export interface YouTubeThumbnailElement {
-  element: HTMLElement;
-  type: 'regular' | 'end-card' | 'metadata' | 'player';
-  context: 'home' | 'search' | 'watch' | 'channel' | 'subscriptions' | 'trending' | 'unknown';
-}
+// Keep backward compatibility but prefer ThumbnailInfo
+export interface YouTubeThumbnailElement extends ThumbnailInfo {}
 
 export interface YouTubeServiceConfig {
   debug?: boolean;
@@ -27,6 +26,7 @@ export class YouTubeService {
   private thumbnailCallbacks: ((thumbnails: YouTubeThumbnailElement[]) => void)[] = [];
   private isInitialized = false;
   private debounceTimer: number | null = null;
+  private thumbnailDetector: ThumbnailDetector;
 
   constructor(config: YouTubeServiceConfig = {}) {
     this.config = {
@@ -34,6 +34,11 @@ export class YouTubeService {
       debounceMs: 100,
       ...config,
     };
+    
+    this.thumbnailDetector = new ThumbnailDetector({
+      debug: this.config.debug,
+      includeProcessed: false,
+    });
   }
 
   /**
@@ -115,6 +120,7 @@ export class YouTubeService {
     if (pathname.startsWith('/channel') || pathname.startsWith('/c/') || pathname.startsWith('/@')) return 'channel';
     if (pathname.startsWith('/feed/subscriptions')) return 'subscriptions';
     if (pathname.startsWith('/feed/trending')) return 'trending';
+    if (pathname.startsWith('/shorts')) return 'shorts-feed';
     
     return 'unknown';
   }
@@ -195,61 +201,28 @@ export class YouTubeService {
   }
 
   /**
-   * Process and detect thumbnails
+   * Process and detect thumbnails using the enhanced detector
    */
   private processThumbnails(): void {
     this.log('Processing thumbnails...');
     
-    const thumbnails: YouTubeThumbnailElement[] = [];
-    const context = this.getCurrentContext();
-
-    // Find all ytd-thumbnail elements
-    const thumbnailElements = document.querySelectorAll('ytd-thumbnail');
-    thumbnailElements.forEach((element) => {
-      thumbnails.push({
-        element: element as HTMLElement,
-        type: 'regular',
-        context,
-      });
+    // Use the enhanced thumbnail detector
+    const thumbnails = this.thumbnailDetector.detectThumbnails();
+    
+    // Mark detected thumbnails as processed to avoid reprocessing
+    thumbnails.forEach(thumbnail => {
+      this.thumbnailDetector.markAsProcessed(thumbnail.element);
     });
 
-    // Find end card thumbnails
-    const endCardElements = document.querySelectorAll('.ytp-videowall-still');
-    endCardElements.forEach((element) => {
-      thumbnails.push({
-        element: element as HTMLElement,
-        type: 'end-card',
-        context,
-      });
-    });
-
-    // Find metadata line elements
-    const metadataElements = document.querySelectorAll('#metadata-line');
-    metadataElements.forEach((element) => {
-      const metaDiv = element.closest('#meta');
-      const titleAnchor = metaDiv?.querySelector('a#video-title');
-      if (titleAnchor) {
-        thumbnails.push({
-          element: element as HTMLElement,
-          type: 'metadata',
-          context,
-        });
-      }
-    });
-
-    // Find video player (for watch page)
-    if (context === 'watch') {
-      const videoPlayer = document.querySelector('.html5-video-player') as HTMLElement;
-      if (videoPlayer) {
-        thumbnails.push({
-          element: videoPlayer,
-          type: 'player',
-          context,
-        });
-      }
-    }
-
-    this.log(`Found ${thumbnails.length} thumbnails`, thumbnails);
+    this.log(`Found ${thumbnails.length} thumbnails with enhanced detection:`, 
+      thumbnails.map(t => ({ 
+        type: t.type, 
+        videoType: t.videoType, 
+        context: t.context, 
+        containerType: t.containerType 
+      }))
+    );
+    
     this.notifyThumbnailCallbacks(thumbnails);
   }
 

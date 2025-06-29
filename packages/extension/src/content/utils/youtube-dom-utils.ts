@@ -15,13 +15,16 @@ export interface VideoInfo {
  */
 export function extractVideoInfo(
   element: HTMLElement,
-  type: 'regular' | 'end-card' | 'metadata' | 'player'
+  type: 'regular' | 'end-card' | 'metadata' | 'player' | 'shorts' | 'live' | 'premiere'
 ): VideoInfo | null {
   try {
     switch (type) {
       case 'metadata':
         return extractMetadataVideoInfo(element);
       case 'regular':
+      case 'shorts':
+      case 'live':
+      case 'premiere':
         return extractRegularVideoInfo(element);
       case 'end-card':
         return extractEndCardVideoInfo(element);
@@ -190,7 +193,7 @@ export function isProcessed(element: HTMLElement, identifier = 'yt-summarize-pro
 /**
  * Get optimal button position for different thumbnail types
  */
-export function getButtonPosition(type: 'regular' | 'end-card' | 'metadata' | 'player'): React.CSSProperties {
+export function getButtonPosition(type: 'regular' | 'end-card' | 'metadata' | 'player' | 'shorts' | 'live' | 'premiere'): React.CSSProperties {
   switch (type) {
     case 'end-card':
       return {
@@ -206,6 +209,9 @@ export function getButtonPosition(type: 'regular' | 'end-card' | 'metadata' | 'p
       };
     case 'player':
     case 'regular':
+    case 'shorts':
+    case 'live':
+    case 'premiere':
     default:
       return {
         position: 'absolute',

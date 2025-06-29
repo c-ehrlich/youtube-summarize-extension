@@ -1,0 +1,320 @@
+/**
+ * Safe YouTube Integration Service
+ * Non-intrusive version that won't interfere with YouTube's functionality
+ */
+
+import { ThumbnailDetector, ThumbnailInfo } from './thumbnail-detector';
+
+export interface YouTubeNavigationEvent {
+  type: 'start' | 'finish';
+  url: string;
+  timestamp: number;
+}
+
+export interface YouTubeThumbnailElement extends ThumbnailInfo {}
+
+export interface YouTubeServiceConfig {
+  debug?: boolean;
+  debounceMs?: number;
+  processingDelay?: number;
+}
+
+export class YouTubeServiceSafe {
+  private config: YouTubeServiceConfig;
+  private mutationObserver: MutationObserver | null = null;
+  private navigationCallbacks: ((event: YouTubeNavigationEvent) => void)[] = [];
+  private thumbnailCallbacks: ((thumbnails: YouTubeThumbnailElement[]) => void)[] = [];
+  private isInitialized = false;
+  private debounceTimer: number | null = null;
+  private thumbnailDetector: ThumbnailDetector;
+  private processingTimer: number | null = null;
+
+  constructor(config: YouTubeServiceConfig = {}) {
+    this.config = {
+      debug: false,
+      debounceMs: 500, // Increased debounce to be less aggressive
+      processingDelay: 1000, // Wait 1 second after page load
+      ...config,
+    };
+    
+    this.thumbnailDetector = new ThumbnailDetector({
+      debug: this.config.debug,
+      includeProcessed: false,
+    });
+  }
+
+  /**
+   * Initialize the YouTube service with safe defaults
+   */
+  public initialize(): void {
+    if (this.isInitialized) {
+      this.log('YouTube service already initialized');
+      return;
+    }
+
+    this.log('Initializing Safe YouTube service...');
+    
+    try {
+      this.setupNavigationListeners();
+      this.setupSafeMutationObserver();
+      this.isInitialized = true;
+      
+      // Initial processing with delay to let YouTube load
+      this.scheduleDelayedProcessing();
+      
+      this.log('Safe YouTube service initialized successfully');
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Failed to initialize:', error);
+    }
+  }
+
+  /**
+   * Clean up and destroy the service
+   */
+  public destroy(): void {
+    this.log('Destroying Safe YouTube service...');
+    
+    try {
+      if (this.mutationObserver) {
+        this.mutationObserver.disconnect();
+        this.mutationObserver = null;
+      }
+
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = null;
+      }
+
+      if (this.processingTimer) {
+        clearTimeout(this.processingTimer);
+        this.processingTimer = null;
+      }
+
+      this.navigationCallbacks = [];
+      this.thumbnailCallbacks = [];
+      this.isInitialized = false;
+      
+      this.log('Safe YouTube service destroyed');
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Error during cleanup:', error);
+    }
+  }
+
+  /**
+   * Subscribe to navigation events
+   */
+  public onNavigation(callback: (event: YouTubeNavigationEvent) => void): () => void {
+    this.navigationCallbacks.push(callback);
+    return () => {
+      const index = this.navigationCallbacks.indexOf(callback);
+      if (index > -1) {
+        this.navigationCallbacks.splice(index, 1);
+      }
+    };
+  }
+
+  /**
+   * Subscribe to thumbnail detection events
+   */
+  public onThumbnailsDetected(callback: (thumbnails: YouTubeThumbnailElement[]) => void): () => void {
+    this.thumbnailCallbacks.push(callback);
+    return () => {
+      const index = this.thumbnailCallbacks.indexOf(callback);
+      if (index > -1) {
+        this.thumbnailCallbacks.splice(index, 1);
+      }
+    };
+  }
+
+  /**
+   * Setup YouTube SPA navigation listeners with error handling
+   */
+  private setupNavigationListeners(): void {
+    try {
+      // Listen for YouTube's navigation events
+      window.addEventListener('yt-navigate-start', () => {
+        try {
+          const navigationEvent: YouTubeNavigationEvent = {
+            type: 'start',
+            url: window.location.href,
+            timestamp: Date.now(),
+          };
+          this.log('Navigation start', navigationEvent);
+          this.notifyNavigationCallbacks(navigationEvent);
+        } catch (error) {
+          console.error('[YouTubeServiceSafe] Error in navigation start handler:', error);
+        }
+      });
+
+      window.addEventListener('yt-navigate-finish', () => {
+        try {
+          const navigationEvent: YouTubeNavigationEvent = {
+            type: 'finish',
+            url: window.location.href,
+            timestamp: Date.now(),
+          };
+          this.log('Navigation finish', navigationEvent);
+          this.notifyNavigationCallbacks(navigationEvent);
+          
+          // Delayed processing after navigation to let YouTube load content
+          this.scheduleDelayedProcessing();
+        } catch (error) {
+          console.error('[YouTubeServiceSafe] Error in navigation finish handler:', error);
+        }
+      });
+
+      // Fallback: Listen for URL changes with less frequency
+      let lastUrl = window.location.href;
+      const checkUrlChange = () => {
+        try {
+          const currentUrl = window.location.href;
+          if (currentUrl !== lastUrl) {
+            this.log('URL change detected', { from: lastUrl, to: currentUrl });
+            lastUrl = currentUrl;
+            this.scheduleDelayedProcessing();
+          }
+        } catch (error) {
+          console.error('[YouTubeServiceSafe] Error in URL change check:', error);
+        }
+      };
+      
+      // Check less frequently to be less intrusive
+      setInterval(checkUrlChange, 2000);
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Error setting up navigation listeners:', error);
+    }
+  }
+
+  /**
+   * Setup a safer, less aggressive mutation observer
+   */
+  private setupSafeMutationObserver(): void {
+    try {
+      this.mutationObserver = new MutationObserver((mutations) => {
+        try {
+          // Only process if we see significant changes (not just attributes)
+          const hasSignificantChanges = mutations.some(mutation => 
+            mutation.type === 'childList' && mutation.addedNodes.length > 0
+          );
+
+          if (hasSignificantChanges) {
+            this.log(`MutationObserver triggered with ${mutations.length} mutations`);
+            this.scheduleProcessThumbnails();
+          }
+        } catch (error) {
+          console.error('[YouTubeServiceSafe] Error in mutation observer:', error);
+        }
+      });
+
+      // Observe with more targeted settings
+      this.mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        // Don't observe attributes to be less intrusive
+        attributes: false,
+      });
+
+      this.log('Safe MutationObserver set up successfully');
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Error setting up mutation observer:', error);
+    }
+  }
+
+  /**
+   * Schedule delayed processing to let YouTube load content first
+   */
+  private scheduleDelayedProcessing(): void {
+    try {
+      if (this.processingTimer) {
+        clearTimeout(this.processingTimer);
+      }
+
+      this.processingTimer = window.setTimeout(() => {
+        this.scheduleProcessThumbnails();
+        this.processingTimer = null;
+      }, this.config.processingDelay);
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Error scheduling delayed processing:', error);
+    }
+  }
+
+  /**
+   * Debounced thumbnail processing with error handling
+   */
+  private scheduleProcessThumbnails(): void {
+    try {
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+      }
+
+      this.debounceTimer = window.setTimeout(() => {
+        this.processThumbnails();
+        this.debounceTimer = null;
+      }, this.config.debounceMs);
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Error scheduling thumbnail processing:', error);
+    }
+  }
+
+  /**
+   * Process and detect thumbnails with comprehensive error handling
+   */
+  private processThumbnails(): void {
+    try {
+      this.log('Processing thumbnails...');
+      
+      // Use the enhanced thumbnail detector with error handling
+      const thumbnails = this.thumbnailDetector.detectThumbnails();
+      
+      // Mark detected thumbnails as processed to avoid reprocessing
+      thumbnails.forEach(thumbnail => {
+        try {
+          this.thumbnailDetector.markAsProcessed(thumbnail.element);
+        } catch (error) {
+          console.error('[YouTubeServiceSafe] Error marking thumbnail as processed:', error);
+        }
+      });
+
+      this.log(`Found ${thumbnails.length} thumbnails with safe detection`);
+      
+      this.notifyThumbnailCallbacks(thumbnails);
+    } catch (error) {
+      console.error('[YouTubeServiceSafe] Error processing thumbnails:', error);
+    }
+  }
+
+  /**
+   * Notify navigation callbacks with error handling
+   */
+  private notifyNavigationCallbacks(event: YouTubeNavigationEvent): void {
+    this.navigationCallbacks.forEach((callback) => {
+      try {
+        callback(event);
+      } catch (error) {
+        console.error('[YouTubeServiceSafe] Error in navigation callback:', error);
+      }
+    });
+  }
+
+  /**
+   * Notify thumbnail callbacks with error handling
+   */
+  private notifyThumbnailCallbacks(thumbnails: YouTubeThumbnailElement[]): void {
+    this.thumbnailCallbacks.forEach((callback) => {
+      try {
+        callback(thumbnails);
+      } catch (error) {
+        console.error('[YouTubeServiceSafe] Error in thumbnail callback:', error);
+      }
+    });
+  }
+
+  /**
+   * Debug logging
+   */
+  private log(message: string, data?: any): void {
+    if (this.config.debug) {
+      console.log(`[YouTubeServiceSafe] ${message}`, data || '');
+    }
+  }
+}

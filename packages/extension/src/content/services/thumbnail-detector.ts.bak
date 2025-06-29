@@ -1,0 +1,333 @@
+/**
+ * Thumbnail Detection Service
+ * Enhanced thumbnail detection with classification and context awareness
+ */
+
+export interface ThumbnailInfo {
+  element: HTMLElement;
+  type: 'regular' | 'shorts' | 'live' | 'premiere' | 'end-card' | 'metadata' | 'player';
+  context: 'home' | 'search' | 'watch' | 'channel' | 'subscriptions' | 'trending' | 'shorts-feed' | 'unknown';
+  videoType: 'standard' | 'shorts' | 'live' | 'premiere' | 'upcoming' | 'unknown';
+  containerType: 'grid' | 'list' | 'sidebar' | 'endscreen' | 'player' | 'unknown';
+}
+
+export interface ThumbnailDetectorConfig {
+  debug?: boolean;
+  includeProcessed?: boolean;
+}
+
+export class ThumbnailDetector {
+  private config: ThumbnailDetectorConfig;
+
+  constructor(config: ThumbnailDetectorConfig = {}) {
+    this.config = {
+      debug: false,
+      includeProcessed: false,
+      ...config,
+    };
+  }
+
+  /**
+   * Detect all thumbnails on the current page
+   */
+  public detectThumbnails(): ThumbnailInfo[] {
+    const context = this.getCurrentContext();
+    const thumbnails: ThumbnailInfo[] = [];
+
+    this.log(`Detecting thumbnails for context: ${context}`);
+
+    // Detect regular ytd-thumbnail elements
+    const regularThumbnails = this.detectRegularThumbnails(context);
+    thumbnails.push(...regularThumbnails);
+
+    // Detect end card thumbnails
+    const endCardThumbnails = this.detectEndCardThumbnails(context);
+    thumbnails.push(...endCardThumbnails);
+
+    // Detect metadata thumbnails
+    const metadataThumbnails = this.detectMetadataThumbnails(context);
+    thumbnails.push(...metadataThumbnails);
+
+    // Detect video player (watch page)
+    if (context === 'watch') {
+      const playerThumbnail = this.detectPlayerThumbnail(context);
+      if (playerThumbnail) {
+        thumbnails.push(playerThumbnail);
+      }
+    }
+
+    // Filter out processed elements if requested
+    const filteredThumbnails = this.config.includeProcessed 
+      ? thumbnails 
+      : thumbnails.filter(thumb => !this.isElementProcessed(thumb.element));
+
+    this.log(`Found ${filteredThumbnails.length} thumbnails (${thumbnails.length} total, ${thumbnails.length - filteredThumbnails.length} already processed)`);
+
+    return filteredThumbnails;
+  }
+
+  /**
+   * Detect regular ytd-thumbnail elements
+   */
+  private detectRegularThumbnails(context: ThumbnailInfo['context']): ThumbnailInfo[] {
+    const thumbnails: ThumbnailInfo[] = [];
+    
+    // Universal selector for all thumbnail elements
+    const elements = document.querySelectorAll('ytd-thumbnail');
+    
+    elements.forEach((element) => {
+      const htmlElement = element as HTMLElement;
+      const containerType = this.getContainerType(htmlElement);
+      const videoType = this.getVideoType(htmlElement);
+      const thumbnailType = this.getThumbnailType(htmlElement, videoType);
+
+      thumbnails.push({
+        element: htmlElement,
+        type: thumbnailType,
+        context,
+        videoType,
+        containerType,
+      });
+    });
+
+    this.log(`Detected ${thumbnails.length} regular thumbnails in ${context} context`);
+    return thumbnails;
+  }
+
+  /**
+   * Detect end card thumbnails
+   */
+  private detectEndCardThumbnails(context: ThumbnailInfo['context']): ThumbnailInfo[] {
+    const thumbnails: ThumbnailInfo[] = [];
+    const elements = document.querySelectorAll('.ytp-videowall-still');
+
+    elements.forEach((element) => {
+      thumbnails.push({
+        element: element as HTMLElement,
+        type: 'end-card',
+        context,
+        videoType: 'standard', // End cards are typically standard videos
+        containerType: 'endscreen',
+      });
+    });
+
+    this.log(`Detected ${thumbnails.length} end card thumbnails`);
+    return thumbnails;
+  }
+
+  /**
+   * Detect metadata line thumbnails
+   */
+  private detectMetadataThumbnails(context: ThumbnailInfo['context']): ThumbnailInfo[] {
+    const thumbnails: ThumbnailInfo[] = [];
+    const elements = document.querySelectorAll('#metadata-line');
+
+    elements.forEach((element) => {
+      const metaDiv = element.closest('#meta');
+      const titleAnchor = metaDiv?.querySelector('a#video-title');
+      
+      // Only include if it has a valid video title link
+      if (titleAnchor) {
+        thumbnails.push({
+          element: element as HTMLElement,
+          type: 'metadata',
+          context,
+          videoType: 'standard',
+          containerType: 'list',
+        });
+      }
+    });
+
+    this.log(`Detected ${thumbnails.length} metadata thumbnails`);
+    return thumbnails;
+  }
+
+  /**
+   * Detect video player thumbnail (watch page)
+   */
+  private detectPlayerThumbnail(context: ThumbnailInfo['context']): ThumbnailInfo | null {
+    const videoPlayer = document.querySelector('.html5-video-player') as HTMLElement;
+    if (!videoPlayer) return null;
+
+    const mediaContainer = document.querySelector('#media-container-link') as HTMLAnchorElement;
+    if (!mediaContainer) return null;
+
+    return {
+      element: videoPlayer,
+      type: 'player',
+      context,
+      videoType: this.getVideoTypeFromUrl(mediaContainer.href),
+      containerType: 'player',
+    };
+  }
+
+  /**
+   * Get current page context
+   */
+  private getCurrentContext(): ThumbnailInfo['context'] {
+    const pathname = window.location.pathname;
+    
+    if (pathname === '/' || pathname.startsWith('/feed/home')) return 'home';
+    if (pathname.startsWith('/results')) return 'search';
+    if (pathname.startsWith('/watch')) return 'watch';
+    if (pathname.startsWith('/channel') || pathname.startsWith('/c/') || pathname.startsWith('/@')) return 'channel';
+    if (pathname.startsWith('/feed/subscriptions')) return 'subscriptions';
+    if (pathname.startsWith('/feed/trending')) return 'trending';
+    if (pathname.startsWith('/shorts')) return 'shorts-feed';
+    
+    return 'unknown';
+  }
+
+  /**
+   * Determine container type based on element's DOM context
+   */
+  private getContainerType(element: HTMLElement): ThumbnailInfo['containerType'] {
+    const container = element.closest([
+      'ytd-rich-grid-media',
+      'ytd-compact-video-renderer',
+      'ytd-video-renderer',
+      'ytd-rich-item-renderer',
+      'ytd-grid-video-renderer',
+      'ytd-playlist-video-renderer',
+    ].join(', '));
+
+    if (!container) return 'unknown';
+
+    const containerClass = container.tagName.toLowerCase();
+    
+    if (containerClass.includes('rich-grid') || containerClass.includes('grid')) return 'grid';
+    if (containerClass.includes('compact') || containerClass.includes('playlist')) return 'sidebar';
+    if (containerClass.includes('video-renderer')) return 'list';
+    
+    return 'unknown';
+  }
+
+  /**
+   * Determine video type from element
+   */
+  private getVideoType(element: HTMLElement): ThumbnailInfo['videoType'] {
+    const container = element.closest([
+      'ytd-rich-grid-media',
+      'ytd-compact-video-renderer', 
+      'ytd-video-renderer',
+      'ytd-rich-item-renderer',
+    ].join(', '));
+
+    if (!container) return 'unknown';
+
+    // Check for shorts indicators
+    if (this.isShorts(container as HTMLElement)) return 'shorts';
+    
+    // Check for live indicators
+    if (this.isLive(container as HTMLElement)) return 'live';
+    
+    // Check for premiere indicators
+    if (this.isPremiere(container as HTMLElement)) return 'premiere';
+    
+    // Check for upcoming indicators
+    if (this.isUpcoming(container as HTMLElement)) return 'upcoming';
+    
+    return 'standard';
+  }
+
+  /**
+   * Get thumbnail type based on video type and context
+   */
+  private getThumbnailType(_element: HTMLElement, videoType: ThumbnailInfo['videoType']): ThumbnailInfo['type'] {
+    if (videoType === 'shorts') return 'shorts';
+    if (videoType === 'live') return 'live';
+    if (videoType === 'premiere') return 'premiere';
+    
+    return 'regular';
+  }
+
+  /**
+   * Check if element represents a Shorts video
+   */
+  private isShorts(container: HTMLElement): boolean {
+    // Look for shorts-specific indicators
+    const shortsIndicators = [
+      '.ytd-rich-grid-media[is-shorts]',
+      '[aria-label*="Shorts"]',
+      '[aria-label*="Short"]',
+      '.shorts',
+      '[href*="/shorts/"]',
+    ];
+
+    return shortsIndicators.some(selector => container.querySelector(selector));
+  }
+
+  /**
+   * Check if element represents a live video
+   */
+  private isLive(container: HTMLElement): boolean {
+    const liveIndicators = [
+      '.ytd-badge-supported-renderer[aria-label*="LIVE"]',
+      '.ytd-badge-supported-renderer[aria-label*="Live"]',
+      '.live-badge',
+      '[aria-label*="live"]',
+      'ytd-thumbnail-overlay-time-status-renderer[overlay-style="LIVE"]',
+    ];
+
+    return liveIndicators.some(selector => container.querySelector(selector));
+  }
+
+  /**
+   * Check if element represents a premiere video
+   */
+  private isPremiere(container: HTMLElement): boolean {
+    const premiereIndicators = [
+      '.ytd-badge-supported-renderer[aria-label*="PREMIERE"]',
+      '.ytd-badge-supported-renderer[aria-label*="Premiere"]',
+      '[aria-label*="premiere"]',
+      'ytd-thumbnail-overlay-time-status-renderer[overlay-style="UPCOMING"]',
+    ];
+
+    return premiereIndicators.some(selector => container.querySelector(selector));
+  }
+
+  /**
+   * Check if element represents an upcoming video
+   */
+  private isUpcoming(container: HTMLElement): boolean {
+    const upcomingIndicators = [
+      '.ytd-badge-supported-renderer[aria-label*="UPCOMING"]',
+      '[aria-label*="upcoming"]',
+      '[aria-label*="Scheduled"]',
+    ];
+
+    return upcomingIndicators.some(selector => container.querySelector(selector));
+  }
+
+  /**
+   * Get video type from URL
+   */
+  private getVideoTypeFromUrl(url: string): ThumbnailInfo['videoType'] {
+    if (url.includes('/shorts/')) return 'shorts';
+    // Additional URL-based detection could be added here
+    return 'standard';
+  }
+
+  /**
+   * Check if element is already processed
+   */
+  private isElementProcessed(element: HTMLElement): boolean {
+    return element.hasAttribute('data-yt-summarize-processed');
+  }
+
+  /**
+   * Mark element as processed
+   */
+  public markAsProcessed(element: HTMLElement): void {
+    element.setAttribute('data-yt-summarize-processed', 'true');
+  }
+
+  /**
+   * Debug logging
+   */
+  private log(message: string, data?: any): void {
+    if (this.config.debug) {
+      console.log(`[ThumbnailDetector] ${message}`, data || '');
+    }
+  }
+}

@@ -1,16 +1,5 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import "./index.css";
-// Use new architecture for Phase 1 testing
-import { InitNew } from "./content/init-new";
+// Simple entry point that just imports our Solid.js init
+// The Solid.js initialization happens automatically when the module loads
+import "./content/solid-init";
 
-const root = document.createElement("div");
-root.id = "crx-root";
-document.body.appendChild(root);
-
-// Update the main render to include the new YouTube architecture
-ReactDOM.createRoot(root).render(
-  <React.StrictMode>
-    <InitNew />
-  </React.StrictMode>
-);
+export {};

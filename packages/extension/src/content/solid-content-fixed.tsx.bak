@@ -1,0 +1,356 @@
+/**
+ * Solid.js Content Script for YouTube (Fixed Types)
+ * Uses Solid.js for better DX while compiling to vanilla JS for YouTube compatibility
+ */
+
+/* @refresh reload */
+import { render } from 'solid-js/web';
+import { createSignal, onMount, onCleanup, For, type Component } from 'solid-js';
+import type { JSX } from 'solid-js';
+
+interface VideoInfo {
+  videoId: string;
+  title: string;
+  channel: string;
+  url: string;
+}
+
+interface ThumbnailData {
+  id: string;
+  element: HTMLElement;
+  videoInfo: VideoInfo;
+  type: 'regular' | 'shorts' | 'live' | 'end-card' | 'metadata' | 'player';
+}
+
+// Solid.js Button Component
+const SummarizeButton: Component<{ 
+  thumbnail: ThumbnailData;
+  onSummarize: (videoInfo: VideoInfo) => void;
+}> = (props) => {
+  const handleClick = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    props.onSummarize(props.thumbnail.videoInfo);
+  };
+
+  const buttonStyles = (): JSX.CSSProperties => ({
+    'background': '#ff0000',
+    'color': 'white',
+    'border': 'none',
+    'padding': '6px 12px',
+    'border-radius': '4px',
+    'font-size': '12px',
+    'font-weight': 'bold',
+    'cursor': 'pointer',
+    'z-index': '1000',
+  });
+
+  const containerStyles = (): JSX.CSSProperties => {
+    switch (props.thumbnail.type) {
+      case 'end-card':
+        return {
+          'position': 'absolute',
+          'bottom': '0px',
+          'left': '0px',
+          'z-index': '1001',
+        };
+      default:
+        return {
+          'position': 'absolute',
+          'bottom': '8px',
+          'left': '8px',
+          'z-index': '1001',
+        };
+    }
+  };
+
+  return (
+    <div class="solid-summarize-container" style={containerStyles()}>
+      <button 
+        class="solid-summarize-btn"
+        style={buttonStyles()}
+        onClick={handleClick}
+      >
+        Summarize
+      </button>
+    </div>
+  );
+};
+
+// Button Portal Component
+const ButtonPortal: Component<{ 
+  thumbnail: ThumbnailData;
+  onSummarize: (videoInfo: VideoInfo) => void;
+}> = (props) => {
+  let containerRef: HTMLDivElement | undefined;
+
+  onMount(() => {
+    // Inject the container into the thumbnail element
+    if (containerRef) {
+      props.thumbnail.element.appendChild(containerRef);
+      console.log(`[SolidContent] Injected button for: ${props.thumbnail.videoInfo.title}`);
+    }
+  });
+
+  onCleanup(() => {
+    // Clean up when component is destroyed
+    try {
+      if (containerRef && containerRef.parentNode) {
+        containerRef.parentNode.removeChild(containerRef);
+      }
+    } catch (error) {
+      console.error('[SolidContent] Error cleaning up portal:', error);
+    }
+  });
+
+  return (
+    <div ref={containerRef}>
+      <SummarizeButton thumbnail={props.thumbnail} onSummarize={props.onSummarize} />
+    </div>
+  );
+};
+
+// Main Application Component
+const SolidYouTubeSummarizer: Component = () => {
+  const [thumbnails, setThumbnails] = createSignal<ThumbnailData[]>([]);
+  const [isProcessing, setIsProcessing] = createSignal(false);
+
+  let debounceTimer: number | null = null;
+  let mutationObserver: MutationObserver | null = null;
+  const processed = new Set<HTMLElement>();
+
+  // YouTube detection logic
+  const detectThumbnails = (): ThumbnailData[] => {
+    const found: ThumbnailData[] = [];
+
+    try {
+      // Detect regular thumbnails
+      const regularThumbnails = document.querySelectorAll('ytd-thumbnail');
+      regularThumbnails.forEach((element, index) => {
+        const htmlElement = element as HTMLElement;
+        if (processed.has(htmlElement)) return;
+
+        const videoInfo = extractVideoInfoFromRegular(htmlElement);
+        if (videoInfo) {
+          found.push({
+            id: `regular-${videoInfo.videoId}-${index}`,
+            element: htmlElement,
+            videoInfo,
+            type: getVideoType(htmlElement),
+          });
+          processed.add(htmlElement);
+        }
+      });
+
+      // Detect end card thumbnails
+      const endCardThumbnails = document.querySelectorAll('.ytp-videowall-still');
+      endCardThumbnails.forEach((element, index) => {
+        const htmlElement = element as HTMLElement;
+        if (processed.has(htmlElement)) return;
+
+        const videoInfo = extractVideoInfoFromEndCard(htmlElement);
+        if (videoInfo) {
+          found.push({
+            id: `endcard-${videoInfo.videoId}-${index}`,
+            element: htmlElement,
+            videoInfo,
+            type: 'end-card',
+          });
+          processed.add(htmlElement);
+        }
+      });
+
+    } catch (error) {
+      console.error('[SolidContent] Error detecting thumbnails:', error);
+    }
+
+    return found;
+  };
+
+  const extractVideoInfoFromRegular = (element: HTMLElement): VideoInfo | null => {
+    try {
+      const container = element.closest('ytd-rich-grid-media, ytd-compact-video-renderer, ytd-video-renderer');
+      if (!container) return null;
+
+      const titleElement = container.querySelector('#video-title');
+      const title = titleElement?.textContent?.trim() || '';
+
+      const channelElement = container.querySelector('.yt-formatted-string, #channel-name');
+      const channel = channelElement?.textContent?.trim() || '';
+
+      const anchor = container.querySelector('a#thumbnail') as HTMLAnchorElement;
+      if (!anchor) return null;
+
+      const urlParams = new URLSearchParams(anchor.search || '');
+      const videoId = urlParams.get('v') || '';
+
+      if (!videoId) return null;
+
+      return {
+        videoId,
+        title,
+        channel,
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+      };
+    } catch (error) {
+      console.error('[SolidContent] Error extracting regular video info:', error);
+      return null;
+    }
+  };
+
+  const extractVideoInfoFromEndCard = (element: HTMLElement): VideoInfo | null => {
+    try {
+      const titleElement = element.querySelector('.ytp-videowall-still-info-title');
+      const title = titleElement?.textContent?.trim() || '';
+
+      const authorElement = element.querySelector('.ytp-videowall-still-info-author');
+      const channel = authorElement?.textContent?.split('•')[0]?.trim() || '';
+
+      const href = element.getAttribute('href') || '';
+      const videoIdMatch = href.match(/(?:\/watch\?v=|youtu\.be\/)([^&?]+)/);
+      const videoId = videoIdMatch?.[1] || '';
+
+      if (!videoId) return null;
+
+      return {
+        videoId,
+        title,
+        channel,
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+      };
+    } catch (error) {
+      console.error('[SolidContent] Error extracting end card video info:', error);
+      return null;
+    }
+  };
+
+  const getVideoType = (element: HTMLElement): ThumbnailData['type'] => {
+    const container = element.closest('ytd-rich-grid-media, ytd-compact-video-renderer, ytd-video-renderer');
+    if (!container) return 'regular';
+
+    if (container.querySelector('[href*="/shorts/"], [aria-label*="Shorts"]')) {
+      return 'shorts';
+    }
+
+    if (container.querySelector('[aria-label*="LIVE"], [aria-label*="Live"]')) {
+      return 'live';
+    }
+
+    return 'regular';
+  };
+
+  const processPage = () => {
+    if (isProcessing()) return;
+    setIsProcessing(true);
+
+    try {
+      console.log('[SolidContent] Processing page...');
+      const detected = detectThumbnails();
+      
+      if (detected.length > 0) {
+        console.log(`[SolidContent] Found ${detected.length} new thumbnails`);
+        setThumbnails(prev => [...prev, ...detected]);
+      }
+    } catch (error) {
+      console.error('[SolidContent] Error processing page:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const debounceProcessPage = () => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    debounceTimer = window.setTimeout(() => {
+      processPage();
+      debounceTimer = null;
+    }, 1000);
+  };
+
+  const handleSummarizeClick = (videoInfo: VideoInfo) => {
+    console.log('[SolidContent] Summarize clicked for:', videoInfo);
+    // For now, show alert - we can implement actual summarization later
+    alert(`Summarize: ${videoInfo.title}\nChannel: ${videoInfo.channel}\nVideo ID: ${videoInfo.videoId}`);
+  };
+
+  onMount(() => {
+    console.log('[SolidContent] Initializing Solid.js YouTube Summarizer...');
+
+    // Initial processing with delay
+    setTimeout(() => {
+      processPage();
+    }, 2000);
+
+    // Set up observers
+    mutationObserver = new MutationObserver((mutations) => {
+      const hasSignificantChanges = mutations.some(mutation => 
+        mutation.type === 'childList' && mutation.addedNodes.length > 0
+      );
+
+      if (hasSignificantChanges) {
+        debounceProcessPage();
+      }
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false,
+    });
+
+    // Listen for YouTube navigation
+    const handleNavigation = () => {
+      console.log('[SolidContent] Navigation detected');
+      setTimeout(() => processPage(), 1000);
+    };
+
+    window.addEventListener('yt-navigate-finish', handleNavigation);
+
+    onCleanup(() => {
+      console.log('[SolidContent] Cleaning up...');
+      if (mutationObserver) {
+        mutationObserver.disconnect();
+      }
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      window.removeEventListener('yt-navigate-finish', handleNavigation);
+    });
+  });
+
+  return (
+    <For each={thumbnails()}>
+      {(thumbnail) => (
+        <ButtonPortal 
+          thumbnail={thumbnail} 
+          onSummarize={handleSummarizeClick}
+        />
+      )}
+    </For>
+  );
+};
+
+// Initialize the Solid.js app
+const initSolidContent = () => {
+  console.log('[SolidContent] Starting Solid.js YouTube Extension...');
+  
+  // Create a container for our Solid app
+  const appContainer = document.createElement('div');
+  appContainer.id = 'solid-youtube-summarizer';
+  appContainer.style.display = 'none'; // Hide the container itself
+  document.body.appendChild(appContainer);
+
+  // Render the Solid app
+  render(() => <SolidYouTubeSummarizer />, appContainer);
+};
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSolidContent);
+} else {
+  initSolidContent();
+}
+
+export {};

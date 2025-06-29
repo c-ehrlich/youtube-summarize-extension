@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { SummarizeButton } from "./summarize-button";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "../ui/theme/theme-provider";
-import { YouTubeService, YouTubeThumbnailElement, YouTubeNavigationEvent } from "./services/youtube-service";
+import { YouTubeServiceSafe as YouTubeService, YouTubeThumbnailElement, YouTubeNavigationEvent } from "./services/youtube-service-safe";
 import { extractVideoInfo, hasExistingButton, removeExistingButtons, markAsProcessed, isProcessed, getButtonPosition } from "./utils/youtube-dom-utils";
 
 const queryClient = new QueryClient({
@@ -16,10 +16,11 @@ const queryClient = new QueryClient({
   },
 });
 
-// Initialize YouTube service with debug logging for Phase 1 testing
+// Initialize YouTube service with safe, non-intrusive settings
 const youtubeService = new YouTubeService({
   debug: true,
-  debounceMs: 100,
+  debounceMs: 500, // Less aggressive
+  processingDelay: 1000, // Wait for YouTube to load content
 });
 
 interface ProcessedThumbnail extends YouTubeThumbnailElement {
@@ -132,7 +133,7 @@ const SummarizeButtonPortal = ({
   videoId: string;
   title: string;
   channel: string;
-  type: "regular" | "end-card" | "metadata" | "player";
+  type: "regular" | "end-card" | "metadata" | "player" | "shorts" | "live" | "premiere";
 }) => {
   const [container] = useState(() => document.createElement("div"));
 

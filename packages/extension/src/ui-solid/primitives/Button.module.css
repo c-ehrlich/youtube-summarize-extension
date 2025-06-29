@@ -29,6 +29,15 @@
   flex-shrink: 0;
 }
 
+/* Reset anchor styles when button is rendered as anchor */
+.button[href] {
+  text-decoration: none;
+}
+
+.button[href]:hover {
+  text-decoration: none;
+}
+
 /* Variants */
 .default {
   background-color: #f9fafb;

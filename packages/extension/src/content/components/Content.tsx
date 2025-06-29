@@ -25,7 +25,7 @@ export const Content = (props: {
 
   const isLoading = () => videoInfoQuery.isLoading || summaryQuery.isLoading;
   const hasError = () => videoInfoQuery.isError || summaryQuery.isError;
-  
+
   const loadingText = () => {
     if (videoInfoQuery.isLoading) return "Loading video info...";
     if (summaryQuery.isLoading) return "Loading summary...";
@@ -46,10 +46,7 @@ export const Content = (props: {
     <Show
       when={!isLoading() && !hasError()}
       fallback={
-        <Show
-          when={isLoading()}
-          fallback={<p>{errorMessage()}</p>}
-        >
+        <Show when={isLoading()} fallback={<p>{errorMessage()}</p>}>
           <Loading text={loadingText()} />
         </Show>
       }
@@ -61,8 +58,13 @@ export const Content = (props: {
         </div>
       </div>
       <DialogFooter class={styles.footer}>
-        <Button variant="ghost" class={styles.flexOne}>
-          <a href={`https://www.youtube.com/watch?v=${props.videoId}`}>Watch</a>
+        <Button
+          as="a"
+          href={`https://www.youtube.com/watch?v=${props.videoId}`}
+          variant="ghost"
+          class={styles.flexOne}
+        >
+          Watch
         </Button>
         <DialogClose as={Button} variant="default" class={styles.flexOne}>
           Not interested

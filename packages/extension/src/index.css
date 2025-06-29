@@ -4,8 +4,17 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
   -webkit-font-smoothing: antialiased;
   background-color: white;
   color: #111827;
@@ -57,18 +66,4 @@ body {
   --destructive: #dc2626;
   --destructive-foreground: #f9fafb;
   --ring: #4b5563;
-}
-
-/* Animation utilities */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
 }

@@ -1,13 +1,13 @@
 {
     "manifest_version": 3,
     "name": "CRXJS React Vite Example-local",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "permissions": [
       "activeTab",
       "scripting",
       "storage"
     ],
-    "action": { "default_popup": "index.html" },
+    "action": { "default_popup": "popup.html" },
     "background": {
       "service_worker": "src/background.ts",
       "type": "module"

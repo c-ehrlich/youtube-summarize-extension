@@ -2,8 +2,6 @@ import { defineConfig } from "vite";
 import { crx } from "@crxjs/vite-plugin";
 import solidPlugin from "vite-plugin-solid";
 import manifest from "./manifest.json";
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,9 +10,6 @@ export default defineConfig({
     crx({ manifest })
   ],
   css: {
-    postcss: {
-      plugins: [tailwindcss, autoprefixer],
-    },
     modules: {
       // Enable CSS modules for .module.css files
       localsConvention: 'camelCase',

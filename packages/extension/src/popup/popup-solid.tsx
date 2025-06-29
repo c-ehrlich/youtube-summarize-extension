@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 import { createSignal, onMount, Show } from "solid-js";
-import "../index.css";
 import { Button } from "../ui-solid/primitives/button";
+import styles from "./Popup.module.css";
 
 export function PopupSolid() {
   const [apiKey, setApiKey] = createSignal("");
@@ -64,11 +64,11 @@ export function PopupSolid() {
   const isMaybeValidApiKey = () => apiKeyStartsWithSk() && apiKeyIsReasonablyLong();
 
   return (
-    <div class="w-[300px] p-4 font-sans">
-      <div class="flex flex-col gap-3">
-        <h1 class="text-xl font-bold">Settings</h1>
+    <div class={styles.container}>
+      <div class={styles.content}>
+        <h1 class={styles.title}>Settings</h1>
         <div>
-          <label for="apiKey" class="block mb-1">
+          <label for="apiKey" class={styles.label}>
             OpenAI API Key:
           </label>
           <input
@@ -77,18 +77,18 @@ export function PopupSolid() {
             value={apiKey()}
             onInput={(e) => setApiKey(e.currentTarget.value)}
             placeholder="sk-..."
-            class="w-full p-2 border rounded"
+            class={styles.input}
           />
         </div>
 
         <Show when={apiKey().length > 0}>
           <Show when={!apiKeyStartsWithSk()}>
-            <p class="text-red-500">
+            <p class={styles.error}>
               Invalid API key format. Should start with 'sk-'.
             </p>
           </Show>
           <Show when={apiKeyStartsWithSk() && !apiKeyIsReasonablyLong()}>
-            <p class="text-red-500">
+            <p class={styles.error}>
               API key is too short. Please make sure you copied the entire
               key.
             </p>
@@ -98,17 +98,17 @@ export function PopupSolid() {
         <Button
           disabled={!isMaybeValidApiKey()}
           onClick={handleSave}
-          class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+          class={styles.button}
         >
           Save
         </Button>
         <Show when={status()}>
           {(currentStatus) => (
             <div
-              class={`p-2 rounded ${
+              class={`${styles.status} ${
                 currentStatus().isError
-                  ? "bg-red-100 text-red-700"
-                  : "bg-green-100 text-green-700"
+                  ? styles.statusError
+                  : styles.statusSuccess
               }`}
             >
               {currentStatus().message}

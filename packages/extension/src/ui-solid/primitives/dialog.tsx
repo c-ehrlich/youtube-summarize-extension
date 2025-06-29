@@ -3,6 +3,7 @@ import { Dialog as DialogPrimitive } from "@kobalte/core/dialog";
 import { X } from "lucide-solid";
 import { type ComponentProps, splitProps } from "solid-js";
 import { cn } from "../util/cn";
+import styles from "./Dialog.module.css";
 
 export const Dialog = DialogPrimitive;
 
@@ -19,10 +20,7 @@ export const DialogOverlay = (props: DialogOverlayProps) => {
   
   return (
     <DialogPrimitive.Overlay
-      class={cn(
-        "fixed inset-0 z-50 bg-black/80 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0",
-        local.class
-      )}
+      class={cn(styles.overlay, local.class)}
       {...others}
     />
   );
@@ -39,16 +37,13 @@ export const DialogContent = (props: DialogContentProps) => {
     <DialogPortal>
       <DialogOverlay class={local.overlayClass} />
       <DialogPrimitive.Content
-        class={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95 data-[closed]:slide-out-to-left-1/2 data-[closed]:slide-out-to-top-[48%] data-[expanded]:slide-in-from-left-1/2 data-[expanded]:slide-in-from-top-[48%] sm:rounded-lg",
-          local.class
-        )}
+        class={cn(styles.content, local.class)}
         {...others}
       >
         {local.children}
-        <DialogPrimitive.CloseButton class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[expanded]:bg-accent data-[expanded]:text-muted-foreground">
-          <X class="h-4 w-4" />
-          <span class="sr-only">Close</span>
+        <DialogPrimitive.CloseButton class={styles.closeButton}>
+          <X class={styles.closeIcon} />
+          <span class={styles.srOnly}>Close</span>
         </DialogPrimitive.CloseButton>
       </DialogPrimitive.Content>
     </DialogPortal>
@@ -62,10 +57,7 @@ export const DialogHeader = (props: DialogHeaderProps) => {
   
   return (
     <div
-      class={cn(
-        "flex flex-col space-y-1.5 text-center sm:text-left",
-        local.class
-      )}
+      class={cn(styles.header, local.class)}
       {...others}
     />
   );
@@ -78,10 +70,7 @@ export const DialogFooter = (props: DialogFooterProps) => {
   
   return (
     <div
-      class={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-        local.class
-      )}
+      class={cn(styles.footer, local.class)}
       {...others}
     />
   );
@@ -94,10 +83,7 @@ export const DialogTitle = (props: DialogTitleProps) => {
   
   return (
     <DialogPrimitive.Title
-      class={cn(
-        "text-lg font-semibold leading-none tracking-tight",
-        local.class
-      )}
+      class={cn(styles.title, local.class)}
       {...others}
     />
   );
@@ -110,7 +96,7 @@ export const DialogDescription = (props: DialogDescriptionProps) => {
   
   return (
     <DialogPrimitive.Description
-      class={cn("text-sm text-muted-foreground", local.class)}
+      class={cn(styles.description, local.class)}
       {...others}
     />
   );

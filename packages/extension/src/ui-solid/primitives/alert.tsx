@@ -1,20 +1,21 @@
 /** @jsxImportSource solid-js */
-import { type VariantProps } from "class-variance-authority";
 import { type ComponentProps, splitProps } from "solid-js";
 import { cn } from "../util/cn";
-import { alertVariants } from "./alert-variants";
+import styles from "./Alert.module.css";
 
-export interface AlertProps
-  extends ComponentProps<"div">,
-    VariantProps<typeof alertVariants> {}
+export interface AlertProps extends ComponentProps<"div"> {
+  variant?: "default" | "destructive";
+}
 
 export const Alert = (props: AlertProps) => {
   const [local, others] = splitProps(props, ["variant", "class"]);
   
+  const variant = local.variant || "default";
+  
   return (
     <div
       role="alert"
-      class={cn(alertVariants({ variant: local.variant }), local.class)}
+      class={cn(styles.alert, styles[variant], local.class)}
       {...others}
     />
   );
@@ -27,7 +28,7 @@ export const AlertTitle = (props: AlertTitleProps) => {
   
   return (
     <h5
-      class={cn("mb-1 font-medium leading-none tracking-tight", local.class)}
+      class={cn(styles.title, local.class)}
       {...others}
     />
   );
@@ -40,7 +41,7 @@ export const AlertDescription = (props: AlertDescriptionProps) => {
   
   return (
     <div
-      class={cn("text-sm [&_p]:leading-relaxed", local.class)}
+      class={cn(styles.description, local.class)}
       {...others}
     />
   );

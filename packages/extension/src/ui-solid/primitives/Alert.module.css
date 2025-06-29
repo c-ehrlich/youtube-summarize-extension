@@ -1,0 +1,55 @@
+.alert {
+  position: relative;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.alert > svg {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  color: var(--foreground);
+}
+
+.alert > svg ~ * {
+  padding-left: 1.75rem;
+}
+
+.alert > svg + div {
+  transform: translateY(-3px);
+}
+
+.default {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.destructive {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: var(--destructive);
+}
+
+.destructive svg {
+  color: var(--destructive);
+}
+
+.dark .destructive {
+  border-color: var(--destructive);
+}
+
+.title {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.description {
+  font-size: 0.875rem;
+}
+
+.description p {
+  line-height: 1.625;
+}

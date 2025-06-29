@@ -1,6 +1,7 @@
 /** @jsxImportSource solid-js */
 import { createSignal, Show } from "solid-js";
 import { AlertTriangle } from "lucide-solid";
+import styles from "./Config.module.css";
 import { Button } from "../ui-solid/primitives/button";
 import {
   Card,
@@ -17,27 +18,27 @@ export function InitAppFormSolid() {
   const [showAdvanced, setShowAdvanced] = createSignal(false);
 
   return (
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-      <main class="max-w-4xl w-full space-y-8">
-        <header class="text-center space-y-4">
-          <div class="flex justify-center">
+    <div class={styles.container}>
+      <main class={styles.main}>
+        <header class={styles.header}>
+          <div class={styles.logoContainer}>
             <p>todo: logo</p>
           </div>
-          <h1 class="text-4xl font-bold text-gray-900">
+          <h1 class={styles.title}>
             YouTube Summarizer
           </h1>
-          <p class="text-xl text-gray-600">
+          <p class={styles.subtitle}>
             Get quick summaries of YouTube videos with AI-powered technology
           </p>
         </header>
 
-        <Card class="bg-white">
+        <Card class={styles.card}>
           <CardHeader>
-            <CardTitle class="text-2xl">Sign in with Google</CardTitle>
+            <CardTitle class={styles.cardTitle}>Sign in with Google</CardTitle>
             <CardDescription>Recommended for most users</CardDescription>
           </CardHeader>
           <CardContent>
-            <ul class="list-disc list-inside space-y-2 text-gray-600">
+            <ul class={styles.list}>
               <li>Unlimited summaries</li>
               <li>Sync across devices</li>
               <li>No API key required</li>
@@ -48,35 +49,35 @@ export function InitAppFormSolid() {
             <Button
               variant="default"
               size="lg"
-              class="w-full text-lg"
+              class={styles.button}
             >
               Sign in with Google
             </Button>
           </CardFooter>
         </Card>
 
-        <div class="flex items-center space-x-2">
+        <div class={styles.checkboxContainer}>
           <Checkbox
             checked={showAdvanced()}
             onCheckedChange={(checked: boolean) => setShowAdvanced(checked)}
-            class="bg-white"
+            class={styles.checkbox}
           />
           <label
             for="showAdvanced"
-            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            class={styles.checkboxLabel}
           >
             Show advanced options
           </label>
         </div>
 
         <Show when={showAdvanced()}>
-          <Card class="bg-white">
+          <Card class={styles.card}>
             <CardHeader>
               <CardTitle>Advanced Mode</CardTitle>
               <CardDescription>For power users</CardDescription>
             </CardHeader>
-            <CardContent class="space-y-4">
-              <p class="text-sm text-gray-500">
+            <CardContent class={styles.cardContent}>
+              <p class={styles.description}>
                 Use your own OpenAI API key
               </p>
               <Alert variant="destructive">
@@ -89,14 +90,14 @@ export function InitAppFormSolid() {
               </Alert>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" class="w-full">
+              <Button variant="outline" class={styles.button}>
                 Use Advanced Mode
               </Button>
             </CardFooter>
           </Card>
         </Show>
 
-        <footer class="text-center text-gray-500 text-sm">
+        <footer class={styles.footer}>
           <p>&copy; {new Date().getFullYear()} YouTube Summarizer</p>
         </footer>
       </main>

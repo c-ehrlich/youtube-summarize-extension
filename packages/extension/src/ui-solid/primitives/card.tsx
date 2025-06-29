@@ -1,6 +1,7 @@
 /** @jsxImportSource solid-js */
 import { type ComponentProps, splitProps } from "solid-js";
 import { cn } from "../util/cn";
+import styles from "./Card.module.css";
 
 export interface CardProps extends ComponentProps<"div"> {}
 
@@ -9,10 +10,7 @@ export const Card = (props: CardProps) => {
   
   return (
     <div
-      class={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
-        local.class
-      )}
+      class={cn(styles.card, local.class)}
       {...others}
     />
   );
@@ -25,7 +23,7 @@ export const CardHeader = (props: CardHeaderProps) => {
   
   return (
     <div
-      class={cn("flex flex-col space-y-1.5 p-6", local.class)}
+      class={cn(styles.header, local.class)}
       {...others}
     />
   );
@@ -38,10 +36,7 @@ export const CardTitle = (props: CardTitleProps) => {
   
   return (
     <h3
-      class={cn(
-        "text-2xl font-semibold leading-none tracking-tight",
-        local.class
-      )}
+      class={cn(styles.title, local.class)}
       {...others}
     />
   );
@@ -54,7 +49,7 @@ export const CardDescription = (props: CardDescriptionProps) => {
   
   return (
     <p
-      class={cn("text-sm text-muted-foreground", local.class)}
+      class={cn(styles.description, local.class)}
       {...others}
     />
   );
@@ -66,7 +61,7 @@ export const CardContent = (props: CardContentProps) => {
   const [local, others] = splitProps(props, ["class"]);
   
   return (
-    <div class={cn("p-6 pt-0", local.class)} {...others} />
+    <div class={cn(styles.content, local.class)} {...others} />
   );
 };
 
@@ -77,7 +72,7 @@ export const CardFooter = (props: CardFooterProps) => {
   
   return (
     <div
-      class={cn("flex items-center p-6 pt-0", local.class)}
+      class={cn(styles.footer, local.class)}
       {...others}
     />
   );

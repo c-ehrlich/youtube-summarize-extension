@@ -16,29 +16,29 @@
     "@tanstack/solid-query": "^5.81.5",
     "@yt-summarize/server": "workspace:*",
     "ai": "^4.1.0",
-    "class-variance-authority": "^0.7.1",
+
     "clsx": "^2.1.1",
     "he": "^1.2.0",
     "lucide-react": "^0.474.0",
     "lucide-solid": "^0.525.0",
     "solid-js": "^1.9.7",
     "solid-markdown": "^2.0.14",
-    "tailwindcss-animate": "^1.0.7",
+
     "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.30",
     "@eslint/js": "^9.17.0",
-    "@tailwindcss/typography": "^0.5.16",
+
     "@types/chrome": "^0.0.299",
     "@types/he": "^1.2.3",
-    "autoprefixer": "^10.4.20",
+
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
     "postcss": "^8.5.1",
-    "tailwindcss": "^3.4.17",
+
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",

@@ -38,14 +38,13 @@ export const ButtonContainer = () => {
         // Check if already has a button
         if (htmlElement.querySelector(".summarize-btn")) return;
 
-        const videoInfo: VideoInfo | null =
-          extractVideoInfoFromRegular(htmlElement);
+        const videoInfo = extractVideoInfoFromRegular(htmlElement);
         if (videoInfo) {
           found.push({
             videoId: videoInfo.videoId,
             title: videoInfo.title,
             channel: videoInfo.channel,
-            type: getVideoType(htmlElement),
+            type: videoInfo.type,
             thumbnailElement: htmlElement,
           });
           processed.add(htmlElement);
@@ -74,13 +73,15 @@ export const ButtonContainer = () => {
         }
       });
     } catch (error) {
-      console.error("[SolidYouTube] Error detecting thumbnails:", error);
+      console.error("[yt-summarize] Error detecting thumbnails:", error);
     }
 
     return found;
   };
 
-  const extractVideoInfoFromRegular = (element: HTMLElement) => {
+  const extractVideoInfoFromRegular = (
+    element: HTMLElement
+  ): VideoInfo | null => {
     try {
       const container = element.closest(
         "ytd-rich-grid-media, ytd-compact-video-renderer, ytd-video-renderer"
@@ -105,10 +106,12 @@ export const ButtonContainer = () => {
 
       if (!videoId) return null;
 
-      return { videoId, title, channel };
+      const type = getVideoType(element);
+
+      return { videoId, title, channel, type };
     } catch (error) {
       console.error(
-        "[SolidYouTube] Error extracting regular video info:",
+        "[yt-summarize] Error extracting regular video info:",
         error
       );
       return null;
@@ -138,7 +141,7 @@ export const ButtonContainer = () => {
       return { videoId, title, channel, type: "end-card" };
     } catch (error) {
       console.error(
-        "[SolidYouTube] Error extracting end card video info:",
+        "[yt-summarize] Error extracting end card video info:",
         error
       );
       return null;
@@ -167,15 +170,15 @@ export const ButtonContainer = () => {
     setIsProcessing(true);
 
     try {
-      console.log("[SolidYouTube] Processing page...");
+      console.log("[yt-summarize] Processing page...");
       const detected = detectThumbnails();
 
       if (detected.length > 0) {
-        console.log(`[SolidYouTube] Found ${detected.length} new thumbnails`);
+        console.log(`[yt-summarize] Found ${detected.length} new thumbnails`);
         setButtons((prev) => [...prev, ...detected]);
       }
     } catch (error) {
-      console.error("[SolidYouTube] Error processing page:", error);
+      console.error("[yt-summarize] Error processing page:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -193,7 +196,7 @@ export const ButtonContainer = () => {
   };
 
   onMount(() => {
-    console.log("[SolidYouTube] Initializing...");
+    console.log("[yt-summarize] Initializing...");
 
     setTimeout(() => {
       processPage();
@@ -217,7 +220,7 @@ export const ButtonContainer = () => {
     });
 
     const handleNavigation = () => {
-      console.log("[SolidYouTube] Navigation detected");
+      console.log("[yt-summarize] Navigation detected");
       setButtons([]);
       processed.clear();
       setTimeout(() => processPage(), 1000);
@@ -226,7 +229,7 @@ export const ButtonContainer = () => {
     window.addEventListener("yt-navigate-finish", handleNavigation);
 
     onCleanup(() => {
-      console.log("[SolidYouTube] Cleaning up...");
+      console.log("[yt-summarize] Cleaning up...");
       if (mutationObserver) {
         mutationObserver.disconnect();
       }

@@ -7,7 +7,7 @@ export const ButtonPortal = (props: ButtonPortalInfo) => {
 
   onMount(() => {
     props.thumbnailElement.appendChild(containerRef);
-    console.log(`[SolidYouTube] Injected button for: ${props.title}`);
+    console.log(`[yt-summarize] Injected button for: ${props.title}`);
   });
 
   onCleanup(() => {
@@ -16,7 +16,7 @@ export const ButtonPortal = (props: ButtonPortalInfo) => {
         containerRef.parentNode.removeChild(containerRef);
       }
     } catch (error) {
-      console.error("[SolidYouTube] Error cleaning up portal:", error);
+      console.error("[yt-summarize] Error cleaning up portal:", error);
     }
   });
 

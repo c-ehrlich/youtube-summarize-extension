@@ -71,10 +71,8 @@ export const Content = (props: {
         <Button variant="ghost" class={styles.flexOne}>
           <a href={`https://www.youtube.com/watch?v=${props.videoId}`}>Watch</a>
         </Button>
-        <DialogClose>
-          <Button variant="default" class={styles.flexOne}>
-            Not interested
-          </Button>
+        <DialogClose as={Button} variant="default" class={styles.flexOne}>
+          Not interested
         </DialogClose>
       </DialogFooter>
     </Show>

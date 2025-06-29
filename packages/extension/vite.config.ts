@@ -1,16 +1,19 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import { crx } from "@crxjs/vite-plugin";
+import solidPlugin from "vite-plugin-solid";
 import manifest from "./manifest.json";
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), crx({ manifest })],
+  plugins: [
+    solidPlugin(), // For all components now
+    crx({ manifest })
+  ],
   css: {
-    postcss: {
-      plugins: [tailwindcss, autoprefixer],
+    modules: {
+      // Enable CSS modules for .module.css files
+      localsConvention: 'camelCase',
+      generateScopedName: '[name]__[local]___[hash:base64:5]',
     },
   },
   server: {
@@ -22,7 +25,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        popup: "index.html",
+        popup: "popup.html",
+        main: "index.html",
         config: "config.html",
       },
     },

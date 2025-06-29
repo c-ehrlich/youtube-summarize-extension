@@ -1,13 +1,6 @@
 /** @jsxImportSource solid-js */
 import { render } from "solid-js/web";
-import {
-  createSignal,
-  onMount,
-  onCleanup,
-  For,
-  Show,
-  createEffect,
-} from "solid-js";
+import { createSignal, onMount, onCleanup, For, Show } from "solid-js";
 import { cn } from "./utils/cn";
 import buttonStyles from "./Button.module.css";
 import {
@@ -128,10 +121,6 @@ const Content = (props: {
 const SolidSummarizeButton = (props: ButtonPortalInfo) => {
   const [isOpen, setIsOpen] = createSignal(false);
 
-  createEffect(() => {
-    console.log("tktk isOpen", isOpen());
-  });
-
   const containerClasses = cn(buttonStyles.container, {
     [buttonStyles.absolute]: props.type !== "metadata",
     [buttonStyles.bottomLeft]:
@@ -178,7 +167,6 @@ const SolidSummarizeButton = (props: ButtonPortalInfo) => {
           overlayClass="z-[9998]"
           class="bg-gray-100 dark:bg-gray-900 z-[9999] dark:text-white !max-w-2xl"
         >
-          <p>testyyyyyy</p>
           <Content
             videoId={props.videoId}
             title={props.title}

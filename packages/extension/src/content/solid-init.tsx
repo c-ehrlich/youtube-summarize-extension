@@ -1,20 +1,6 @@
 /** @jsxImportSource solid-js */
 import { render } from "solid-js/web";
-import { createSignal, createEffect, onCleanup, For, Show, Switch, Match } from "solid-js";
-import { QueryClientProvider } from "@tanstack/solid-query";
-import { useSummarizeData } from "./solid-data-hooks";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogFooter, 
-  DialogTrigger, 
-  DialogClose 
-} from "../ui-solid/primitives/dialog";
-import { Button } from "../ui-solid/primitives/button";
-import { LoadingSpinner } from "../ui-solid/loading-spinner";
-import { solidQueryClient } from "./solid-query-provider";
-import { SolidMarkdown } from "solid-markdown";
+import { createSignal, onMount, onCleanup, For } from "solid-js";
 
 type VideoInfo = {
   videoId: string;
@@ -28,258 +14,297 @@ type ButtonPortalInfo = VideoInfo & {
 };
 
 const SolidSummarizeButton = (props: ButtonPortalInfo) => {
-  const buttonStyles = () => 
-    props.type === "metadata"
-      ? {} // No special positioning for metadata
-      : {
-          position: "absolute" as const,
-          bottom: "8px",
-          left: "8px",
-        };
+  const handleClick = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // For now, show alert - we can implement actual summarization later
+    alert(
+      `Summarize: ${props.title}\nChannel: ${props.channel}\nVideo ID: ${props.videoId}`
+    );
+  };
+
+  const containerStyles = () => {
+    const base = {
+      position: "absolute" as const,
+      "z-index": "1001",
+    };
+
+    switch (props.type) {
+      case "end-card":
+        return { ...base, bottom: "0px", left: "0px" };
+      case "metadata":
+        return { display: "inline-block", "margin-left": "8px" };
+      default:
+        return { ...base, bottom: "8px", left: "8px" };
+    }
+  };
+
+  const buttonStyles = {
+    background: "#ff0000",
+    color: "white",
+    border: "none",
+    padding: "6px 12px",
+    "border-radius": "4px",
+    "font-size": "12px",
+    "font-weight": "bold",
+    cursor: "pointer",
+    "z-index": "1000",
+  };
 
   return (
-    <Dialog>
-      <DialogTrigger>
-        <button
-          class="summarize-btn z-50 bg-red-500 text-white border-none py-1 px-3 text-lg cursor-pointer rounded-md absolute"
-          style={buttonStyles()}
-        >
-          Summarize
-        </button>
-      </DialogTrigger>
-      <DialogContent
-        overlayClass="z-[9998]"
-        class="bg-gray-100 dark:bg-gray-900 z-[9999] dark:text-white !max-w-2xl"
+    <div class="solid-summarize-container" style={containerStyles()}>
+      <button
+        class="summarize-btn solid-summarize-btn"
+        style={buttonStyles}
+        onClick={handleClick}
       >
-        <SummarizeContent videoId={props.videoId} title={props.title} channel={props.channel} />
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const SummarizeContent = (props: { videoId: string; title: string; channel: string }) => {
-  const { videoInfoQuery, summaryQuery } = useSummarizeData(props);
-
-  return (
-    <Switch>
-      <Match when={videoInfoQuery.status === "pending"}>
-        <Loading text="Loading video info..." />
-      </Match>
-      <Match when={summaryQuery.status === "pending"}>
-        <Loading text="Loading summary..." />
-      </Match>
-      <Match when={videoInfoQuery.status === "error"}>
-        <p>Error loading video info: {String(videoInfoQuery.error)}</p>
-      </Match>
-      <Match when={summaryQuery.status === "error"}>
-        <p>Error loading summary: {String(summaryQuery.error)}</p>
-      </Match>
-      <Match when={summaryQuery.status === "success"}>
-        <>
-          <DialogHeader class="pr-4 text-3xl">Summary</DialogHeader>
-          <div class="w-full flex flex-col gap-2">
-            <div class="prose prose-base max-w-none !text-xl dark:prose-invert [&>p]:mb-4">
-              <SolidMarkdown children={summaryQuery.data?.summary || ""} />
-            </div>
-          </div>
-          <DialogFooter class="flex gap-2">
-            <Button variant="ghost" class="flex-1">
-              <a href={`https://www.youtube.com/watch?v=${props.videoId}`}>Watch</a>
-            </Button>
-            <DialogClose>
-              <Button variant="default" class="flex-1">
-                Close
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </>
-      </Match>
-    </Switch>
-  );
-};
-
-const Loading = (props: { text: string }) => {
-  return (
-    <div class="flex flex-col gap-2 items-center justify-center text-gray-900 dark:text-gray-100">
-      <LoadingSpinner size={32} />
-      <div class="h-2" />
-      <p>{props.text}</p>
+        Summarize
+      </button>
     </div>
   );
 };
 
+
+
 const SolidButtonPortal = (props: ButtonPortalInfo) => {
-  const [portalContainer, setPortalContainer] = createSignal<HTMLDivElement | null>(null);
+  let containerRef!: HTMLDivElement;
 
-  createEffect(() => {
-    // Create portal container
-    const container = document.createElement('div');
-    container.style.cssText = 'position: relative; pointer-events: none; z-index: 50;';
-    
-    // Apply positioning based on type
-    if (props.type === "metadata") {
-      // For metadata buttons, we'll append to a suitable parent
-      const parent = props.thumbnailElement.closest('.ytd-rich-metadata-row-renderer, .ytd-video-meta-block');
-      if (parent) {
-        parent.appendChild(container);
-      } else {
-        props.thumbnailElement.parentElement?.appendChild(container);
-      }
-    } else {
-      // For regular thumbnails, append to the thumbnail element itself
-      props.thumbnailElement.appendChild(container);
-    }
-
-    setPortalContainer(container);
+  onMount(() => {
+    // Inject the container into the thumbnail element
+    props.thumbnailElement.appendChild(containerRef);
+    console.log(
+      `[SolidYouTube] Injected button for: ${props.title}`
+    );
   });
 
   onCleanup(() => {
-    const container = portalContainer();
-    if (container?.parentElement) {
-      container.parentElement.removeChild(container);
+    // Clean up when component is destroyed
+    try {
+      if (containerRef && containerRef.parentNode) {
+        containerRef.parentNode.removeChild(containerRef);
+      }
+    } catch (error) {
+      console.error("[SolidYouTube] Error cleaning up portal:", error);
     }
   });
 
   return (
-    <Show when={portalContainer()}>
-      {(container) => {
-        render(() => (
-          <div style="pointer-events: auto;">
-            <SolidSummarizeButton {...props} />
-          </div>
-        ), container());
-        return <></>;
-      }}
-    </Show>
+    <div ref={containerRef}>
+      <SolidSummarizeButton {...props} />
+    </div>
   );
 };
 
 const SolidButtonContainer = () => {
   const [buttons, setButtons] = createSignal<ButtonPortalInfo[]>([]);
+  const [isProcessing, setIsProcessing] = createSignal(false);
 
-  // YouTube detection logic
-  const detectYouTubeVideos = () => {
-    const videoInfos: ButtonPortalInfo[] = [];
-    
-    // Regular video thumbnails
-    const thumbnails = document.querySelectorAll(
-      'a#thumbnail:not(.ytd-video-preview, .ytd-rich-grid-slim-media), ' +
-      'a.ytd-thumbnail:not(.ytd-video-preview)'
+  let debounceTimer: number | null = null;
+  let mutationObserver: MutationObserver | null = null;
+  const processed = new Set<HTMLElement>();
+
+  // YouTube detection logic (enhanced from backup)
+  const detectThumbnails = (): ButtonPortalInfo[] => {
+    const found: ButtonPortalInfo[] = [];
+
+    try {
+      // Detect regular thumbnails
+      const regularThumbnails = document.querySelectorAll("ytd-thumbnail");
+      regularThumbnails.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        if (processed.has(htmlElement)) return;
+
+        // Check if already has a button
+        if (htmlElement.querySelector('.summarize-btn, .solid-summarize-container')) return;
+
+        const videoInfo = extractVideoInfoFromRegular(htmlElement);
+        if (videoInfo) {
+          found.push({
+            videoId: videoInfo.videoId,
+            title: videoInfo.title,
+            channel: videoInfo.channel,
+            type: getVideoType(htmlElement),
+            thumbnailElement: htmlElement
+          });
+          processed.add(htmlElement);
+        }
+      });
+
+      // Detect end card thumbnails
+      const endCardThumbnails = document.querySelectorAll(".ytp-videowall-still");
+      endCardThumbnails.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        if (processed.has(htmlElement)) return;
+
+        if (htmlElement.querySelector('.summarize-btn, .solid-summarize-container')) return;
+
+        const videoInfo = extractVideoInfoFromEndCard(htmlElement);
+        if (videoInfo) {
+          found.push({
+            videoId: videoInfo.videoId,
+            title: videoInfo.title,
+            channel: videoInfo.channel,
+            type: "end-card",
+            thumbnailElement: htmlElement
+          });
+          processed.add(htmlElement);
+        }
+      });
+    } catch (error) {
+      console.error("[SolidYouTube] Error detecting thumbnails:", error);
+    }
+
+    return found;
+  };
+
+  const extractVideoInfoFromRegular = (element: HTMLElement) => {
+    try {
+      const container = element.closest(
+        "ytd-rich-grid-media, ytd-compact-video-renderer, ytd-video-renderer"
+      );
+      if (!container) return null;
+
+      const titleElement = container.querySelector("#video-title");
+      const title = titleElement?.textContent?.trim() || "";
+
+      const channelElement = container.querySelector(
+        ".yt-formatted-string, #channel-name"
+      );
+      const channel = channelElement?.textContent?.trim() || "";
+
+      const anchor = container.querySelector("a#thumbnail") as HTMLAnchorElement;
+      if (!anchor) return null;
+
+      const urlParams = new URLSearchParams(anchor.search || "");
+      const videoId = urlParams.get("v") || "";
+
+      if (!videoId) return null;
+
+      return { videoId, title, channel };
+    } catch (error) {
+      console.error("[SolidYouTube] Error extracting regular video info:", error);
+      return null;
+    }
+  };
+
+  const extractVideoInfoFromEndCard = (element: HTMLElement) => {
+    try {
+      const titleElement = element.querySelector(".ytp-videowall-still-info-title");
+      const title = titleElement?.textContent?.trim() || "";
+
+      const authorElement = element.querySelector(".ytp-videowall-still-info-author");
+      const channel = authorElement?.textContent?.split("•")[0]?.trim() || "";
+
+      const href = element.getAttribute("href") || "";
+      const videoIdMatch = href.match(/(?:\/watch\?v=|youtu\.be\/)([^&?]+)/);
+      const videoId = videoIdMatch?.[1] || "";
+
+      if (!videoId) return null;
+
+      return { videoId, title, channel };
+    } catch (error) {
+      console.error("[SolidYouTube] Error extracting end card video info:", error);
+      return null;
+    }
+  };
+
+  const getVideoType = (element: HTMLElement): ButtonPortalInfo["type"] => {
+    const container = element.closest(
+      "ytd-rich-grid-media, ytd-compact-video-renderer, ytd-video-renderer"
     );
-    
-    thumbnails.forEach((thumbnail) => {
-      if (thumbnail.querySelector('.summarize-btn')) return;
-      
-      const link = thumbnail as HTMLAnchorElement;
-      const href = link.href;
-      const videoIdMatch = href.match(/[?&]v=([^&]+)/);
-      
-      if (videoIdMatch) {
-        const videoId = videoIdMatch[1];
-        const titleElement = thumbnail.closest('ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer')
-          ?.querySelector('#video-title, .ytd-video-meta-block #video-title, h3 a');
-        const channelElement = thumbnail.closest('ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer')
-          ?.querySelector('#channel-name a, .ytd-channel-name a, #text a');
-        
-        const title = titleElement?.textContent?.trim() || 'Unknown Video';
-        const channel = channelElement?.textContent?.trim() || 'Unknown Channel';
-        
-        videoInfos.push({
-          videoId,
-          title,
-          channel,
-          type: "regular",
-          thumbnailElement: thumbnail
-        });
-      }
-    });
+    if (!container) return "regular";
 
-    // End card thumbnails
-    const endCards = document.querySelectorAll('.ytp-ce-video-title-link, .ytp-ce-playlist-title-link');
-    endCards.forEach((endCard) => {
-      if (endCard.querySelector('.summarize-btn')) return;
-      
-      const link = endCard as HTMLAnchorElement;
-      const href = link.href;
-      const videoIdMatch = href.match(/[?&]v=([^&]+)/);
-      
-      if (videoIdMatch) {
-        const videoId = videoIdMatch[1];
-        const title = endCard.textContent?.trim() || 'Unknown Video';
-        
-        videoInfos.push({
-          videoId,
-          title,
-          channel: 'Unknown Channel',
-          type: "end-card",
-          thumbnailElement: endCard
-        });
-      }
-    });
+    if (container.querySelector('[href*="/shorts/"], [aria-label*="Shorts"]')) {
+      return "shorts";
+    }
 
-    // Metadata detection (for current video)
-    const metadataContainers = document.querySelectorAll('#above-the-fold, #meta, #primary-inner');
-    metadataContainers.forEach((container) => {
-      if (container.querySelector('.summarize-btn')) return;
-      
-      const urlMatch = window.location.href.match(/[?&]v=([^&]+)/);
-      if (urlMatch) {
-        const videoId = urlMatch[1];
-        const titleElement = container.querySelector('#title h1, .ytd-video-primary-info-renderer h1');
-        const channelElement = container.querySelector('#owner-container a, .ytd-channel-name a, #channel-name a');
-        
-        const title = titleElement?.textContent?.trim() || document.title.replace(' - YouTube', '');
-        const channel = channelElement?.textContent?.trim() || 'Unknown Channel';
-        
-        videoInfos.push({
-          videoId,
-          title,
-          channel,
-          type: "metadata",
-          thumbnailElement: container
-        });
-      }
-    });
+    if (container.querySelector('[aria-label*="LIVE"], [aria-label*="Live"]')) {
+      return "live";
+    }
 
-    return videoInfos;
+    return "regular";
   };
 
-  // Periodic detection
-  const checkForVideos = () => {
-    const newButtons = detectYouTubeVideos();
-    setButtons(newButtons);
+  const processPage = () => {
+    if (isProcessing()) return;
+    setIsProcessing(true);
+
+    try {
+      console.log("[SolidYouTube] Processing page...");
+      const detected = detectThumbnails();
+
+      if (detected.length > 0) {
+        console.log(`[SolidYouTube] Found ${detected.length} new thumbnails`);
+        setButtons((prev) => [...prev, ...detected]);
+      }
+    } catch (error) {
+      console.error("[SolidYouTube] Error processing page:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Set up observers and intervals
-  createEffect(() => {
-    checkForVideos();
-    
-    const interval = setInterval(checkForVideos, 1000);
-    
-    const observer = new MutationObserver(() => {
-      setTimeout(checkForVideos, 100);
+  const debounceProcessPage = () => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    debounceTimer = window.setTimeout(() => {
+      processPage();
+      debounceTimer = null;
+    }, 500); // Conservative debounce
+  };
+
+  onMount(() => {
+    console.log("[SolidYouTube] Initializing...");
+
+    // Initial processing with delay
+    setTimeout(() => {
+      processPage();
+    }, 1000);
+
+    // Set up mutation observer
+    mutationObserver = new MutationObserver((mutations) => {
+      const hasSignificantChanges = mutations.some(
+        (mutation) =>
+          mutation.type === "childList" && mutation.addedNodes.length > 0
+      );
+
+      if (hasSignificantChanges) {
+        debounceProcessPage();
+      }
     });
-    
-    observer.observe(document.body, {
+
+    mutationObserver.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
+      attributes: false,
     });
 
-    // Listen for navigation changes
+    // Listen for YouTube navigation
     const handleNavigation = () => {
-      setTimeout(checkForVideos, 500);
+      console.log("[SolidYouTube] Navigation detected");
+      // Clear existing thumbnails on navigation
+      setButtons([]);
+      processed.clear();
+      setTimeout(() => processPage(), 1000);
     };
-    
-    window.addEventListener('yt-navigate-finish', handleNavigation);
-    window.addEventListener('popstate', handleNavigation);
+
+    window.addEventListener("yt-navigate-finish", handleNavigation);
 
     onCleanup(() => {
-      clearInterval(interval);
-      observer.disconnect();
-      window.removeEventListener('yt-navigate-finish', handleNavigation);
-      window.removeEventListener('popstate', handleNavigation);
+      console.log("[SolidYouTube] Cleaning up...");
+      if (mutationObserver) {
+        mutationObserver.disconnect();
+      }
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      window.removeEventListener("yt-navigate-finish", handleNavigation);
     });
   });
+
+  console.log("[SolidButtonContainer] Rendering with buttons:", buttons().length);
 
   return (
     <For each={buttons()}>
@@ -288,21 +313,14 @@ const SolidButtonContainer = () => {
   );
 };
 
-const App = () => {
-  return (
-    <QueryClientProvider client={solidQueryClient}>
-      <SolidButtonContainer />
-    </QueryClientProvider>
-  );
-};
-
 // Initialize the app
 const init = () => {
   const container = document.createElement('div');
   container.id = 'solid-youtube-summarize-root';
+  container.style.display = 'none'; // Hide the container itself
   document.body.appendChild(container);
   
-  render(() => <App />, container);
+  render(() => <SolidButtonContainer />, container);
 };
 
 // Wait for DOM to be ready

@@ -58,8 +58,6 @@ const Content = (props: {
     channel: props.channel,
   });
 
-  console.log("tktk dialogContent", props.videoId);
-
   return (
     <Show
       when={

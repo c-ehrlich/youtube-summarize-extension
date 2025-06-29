@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Button } from "../ui/primitives/button";
 import {
   Card,
@@ -66,7 +66,7 @@ export function InitAppForm() {
           <Checkbox
             id="showAdvanced"
             checked={showAdvanced}
-            onCheckedChange={(checked) => setShowAdvanced(!!checked)}
+            onCheckedChange={(checked: boolean) => setShowAdvanced(!!checked)}
             className="bg-white"
           />
           <label

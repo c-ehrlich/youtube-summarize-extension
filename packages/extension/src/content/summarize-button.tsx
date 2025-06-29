@@ -26,7 +26,7 @@ export function SummarizeButton({
   videoId: string;
   title: string;
   channel: string;
-  type: "regular" | "end-card" | "metadata";
+  type: "regular" | "end-card" | "metadata" | "player";
 }) {
   const buttonStyles =
     type === "metadata"

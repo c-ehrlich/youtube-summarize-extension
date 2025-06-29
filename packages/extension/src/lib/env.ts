@@ -1,3 +1,4 @@
+// @ts-expect-error just for testint
 const hasUpdateUrl = "update_url" in chrome.runtime.getManifest();
 // export const isProdMode = hasUpdateUrl;
 export const isProdMode = true;

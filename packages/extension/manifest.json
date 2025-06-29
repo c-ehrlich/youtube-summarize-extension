@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "CRXJS React Vite Exampleee",
+    "name": "CRXJS React Vite Example-local",
     "version": "1.0.0",
     "permissions": [
       "activeTab",
